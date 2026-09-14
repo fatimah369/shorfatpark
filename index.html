@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>السحب الرسمي — Official Draw</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap');
+
+:root{
+  /* Shorofat Park brand: cream ground, navy ink, warm gold accent */
+  --bg:#F9F6EF;
+  --surface:#FFFFFF;
+  --line:#E3DAC4;
+  --text:#191D3A;
+  --muted:#83786C;
+  --brass:#C3A966;
+  --brass-bright:#E4CD94;
+  --brass-dim:#A9863F;
+  --on-gold:#191D3A; /* fixed navy for text on gold buttons, in both themes */
+  --ui:"Tajawal","Segoe UI",system-ui,sans-serif;
+  --formal:"Noto Naskh Arabic",Georgia,serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--ui);
+  font-weight:300;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Stage runs the same brand palette in its dark register, matching the
+   navy-and-gold hero banner on shorofatpark.com; every component below
+   reads these same token names, so this is the only place the theme flips. */
+.stage{
+  --bg:#181C36;
+  --surface:#232852;
+  --line:#2E3462;
+  --text:#F3EEE1;
+  --muted:#B8A97E;
+}
+
+/* ============ SETUP ============ */
+.setup{max-width:760px;margin:0 auto;padding:48px 28px 96px}
+
+.topbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:52px}
+.wordmark{display:flex;align-items:center;gap:11px;font-family:var(--formal);font-size:24px;color:var(--brass);letter-spacing:.02em}
+.langtoggle{display:flex;gap:2px;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.langtoggle button{
+  background:none;border:0;color:var(--muted);font-family:var(--ui);font-size:12px;
+  padding:6px 13px;cursor:pointer;font-weight:400;
+}
+.langtoggle button[aria-pressed="true"]{background:var(--surface);color:var(--text)}
+
+.field{margin-bottom:36px}
+.field > label,.blockhead{
+  display:block;font-size:13px;color:var(--muted);margin-bottom:9px;font-weight:400;
+}
+.blockhead{display:flex;justify-content:space-between;align-items:baseline}
+.count{color:var(--brass);font-variant-numeric:tabular-nums;font-size:13px}
+.count.warn{color:#C87B5A}
+
+input[type=text],textarea,select{
+  width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:2px;color:var(--text);font-family:var(--ui);font-size:15px;
+  font-weight:300;padding:11px 13px;
+}
+textarea{min-height:200px;resize:vertical;line-height:1.85;font-size:14px}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,canvas:focus-visible{
+  outline:2px solid var(--brass);outline-offset:2px;
+}
+::placeholder{color:var(--muted)}
+
+.opts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:14px;align-items:center}
+.opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
+.opt input{accent-color:var(--brass);width:15px;height:15px;cursor:pointer}
+.colpick{display:none;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.colpick.on{display:flex}
+.colpick select{width:auto;padding:5px 9px;font-size:13px}
+
+.srctabs{display:flex;gap:2px;margin-bottom:12px;border:1px solid var(--line);border-radius:2px;width:fit-content;overflow:hidden}
+.srctabs button{background:none;border:0;color:var(--muted);font-family:var(--ui);font-size:12.5px;padding:7px 16px;cursor:pointer;font-weight:400}
+.srctabs button[aria-pressed="true"]{background:var(--surface);color:var(--text)}
+.sheetbox{display:none;margin-bottom:14px}
+.sheetbox.on{display:block}
+.sheetrow{display:flex;gap:8px}
+.sheetrow input{flex:1;font-size:13px;direction:ltr;text-align:left}
+.sheetrow button{
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-family:var(--ui);font-size:13px;padding:0 20px;border-radius:2px;cursor:pointer;flex:none;
+}
+.sheetrow button:hover{border-color:var(--brass-dim)}
+.synced{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);margin-top:11px;min-height:20px;flex-wrap:wrap}
+.dot{width:6px;height:6px;border-radius:50%;background:#D3C7AA;flex:none}
+.dot.live{background:#7FB08A;animation:pulse 2s infinite}
+.dot.err{background:#C87B5A}
+.dot.lock{background:var(--brass);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.lockbtn{
+  background:none;border:1px solid var(--brass-dim);color:var(--brass);font-family:var(--ui);
+  font-size:12.5px;padding:6px 15px;border-radius:2px;cursor:pointer;margin-inline-start:auto;flex:none;
+}
+.lockbtn:disabled{opacity:.35;cursor:default}
+.helpsteps{font-size:12px;color:var(--muted);line-height:1.85;margin-top:12px;display:none;max-width:62ch}
+.helpsteps.on{display:block}
+.errmsg{font-size:12.5px;color:#C87B5A;line-height:1.7;margin-top:8px;display:none;max-width:62ch}
+.errmsg.on{display:block}
+
+.prize{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.prize .ord{
+  font-family:var(--formal);color:var(--brass-dim);font-size:15px;
+  width:26px;text-align:center;flex:none;
+}
+.prize input{flex:1}
+.prize .del{
+  background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;
+  padding:4px 8px;line-height:1;flex:none;
+}
+.prize .del:hover{color:#C87B5A}
+.addprize{
+  background:none;border:1px dashed var(--line);color:var(--muted);
+  font-family:var(--ui);font-size:13px;padding:8px 15px;border-radius:2px;
+  cursor:pointer;margin-top:6px;
+}
+.addprize:hover{border-color:var(--brass-dim);color:var(--text)}
+
+.seal-block{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:22px 0;margin:44px 0 32px;
+}
+.seal-row{display:flex;gap:16px;align-items:flex-start}
+.seal-key{font-size:12px;color:var(--muted);flex:none;padding-top:2px;width:74px}
+.seal-val{
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;color:var(--brass);
+  letter-spacing:.08em;word-break:break-all;direction:ltr;text-align:start;
+}
+.seal-note{font-size:12px;color:var(--muted);line-height:1.7;margin-top:14px;max-width:62ch}
+
+.start{
+  width:100%;background:var(--brass);border:0;border-radius:2px;color:var(--on-gold);
+  font-family:var(--ui);font-weight:500;font-size:15px;padding:15px;cursor:pointer;
+}
+.start:hover{background:var(--brass-dim)}
+.start:disabled{background:var(--surface);color:var(--muted);cursor:not-allowed}
+
+/* ============ STAGE ============ */
+.stage{
+  display:none;position:fixed;inset:0;background:var(--bg);
+  flex-direction:column;align-items:center;justify-content:space-between;
+  padding:24px 28px;text-align:center;overflow:hidden;
+}
+.stage.on{display:flex}
+
+.stage-head{width:100%;max-width:900px;flex:none}
+.event-name{font-family:var(--formal);font-size:clamp(16px,2.2vw,24px);color:var(--text);line-height:1.5}
+.stage-head .rule{height:1px;background:var(--line);margin:14px auto 0;max-width:220px}
+
+.reveal{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;max-width:1000px;gap:14px;min-height:0;
+}
+.prize-label{
+  font-size:clamp(13px,1.6vw,16px);color:var(--brass);font-weight:400;
+  opacity:0;transition:opacity .5s;flex:none;
+}
+.prize-label.show{opacity:1}
+
+/* wheel */
+.wheelWrap{
+  position:relative;flex:1 1 auto;min-height:0;
+  width:min(58vh,58vw,520px);height:min(58vh,58vw,520px);
+  max-width:100%;
+}
+.wheelRing{
+  position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  border:6px solid var(--brass);
+  box-shadow:0 0 0 1px var(--brass-dim) inset, 0 6px 30px rgba(0,0,0,.45);
+}
+.wheelCanvas{position:absolute;inset:8px;border-radius:50%;display:block;width:calc(100% - 16px);height:calc(100% - 16px)}
+.wheelHub{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:9%;height:9%;border-radius:50%;background:var(--brass);
+  box-shadow:0 0 0 3px var(--bg), 0 0 0 4px var(--brass-dim);pointer-events:none;
+}
+.pointer{
+  position:absolute;left:50%;top:-13px;transform:translateX(-50%);
+  width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;
+  border-top:22px solid var(--brass);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));z-index:2;
+}
+
+.namebox{
+  min-height:clamp(60px,11vh,110px);display:flex;align-items:center;justify-content:center;
+  width:100%;position:relative;flex:none;
+}
+.name{
+  font-family:var(--formal);font-weight:400;
+  font-size:clamp(26px,5.2vw,58px);line-height:1.25;color:var(--text);
+  padding:0 10px;
+}
+.name.locked{color:var(--text);animation:settle .75s cubic-bezier(.2,.7,.3,1)}
+@keyframes settle{
+  0%{transform:scale(1.035);opacity:.45}
+  100%{transform:scale(1);opacity:1}
+}
+
+.brassrule{height:1px;background:var(--brass);width:0;transition:width .85s cubic-bezier(.25,.8,.3,1);max-width:520px;flex:none}
+.brassrule.draw{width:100%}
+
+.sealmark{opacity:0;transition:opacity .7s .35s;flex:none}
+.sealmark.show{opacity:1}
+
+.idline{
+  font-size:13px;color:var(--muted);min-height:20px;opacity:0;transition:opacity .6s .5s;
+  font-variant-numeric:tabular-nums;flex:none;
+}
+.idline.show{opacity:1}
+
+.stage-foot{width:100%;max-width:1000px;display:flex;flex-direction:column;gap:16px;flex:none}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ctl{
+  background:none;border:1px solid var(--line);color:var(--text);
+  font-family:var(--ui);font-size:14px;font-weight:400;padding:11px 24px;
+  border-radius:2px;cursor:pointer;
+}
+.ctl:hover:not(:disabled){border-color:var(--brass-dim)}
+.ctl.primary{background:var(--brass);border-color:var(--brass);color:var(--on-gold);font-weight:500}
+.ctl.primary:hover:not(:disabled){background:var(--brass-dim)}
+.ctl:disabled{opacity:.35;cursor:not-allowed}
+
+.record{
+  border-top:1px solid var(--line);padding-top:12px;
+  display:flex;justify-content:center;gap:8px 30px;flex-wrap:wrap;
+  font-size:11.5px;color:var(--muted);
+}
+.record span{font-variant-numeric:tabular-nums}
+.record .mono{font-family:ui-monospace,Menlo,monospace;direction:ltr;letter-spacing:.06em}
+
+/* ============ RESULTS ============ */
+.results{display:none;width:100%;max-width:620px;margin:0 auto;text-align:start}
+.results.on{display:block}
+.res-row{display:flex;gap:16px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+.res-row:first-child{border-top:1px solid var(--line)}
+.res-prize{font-size:13px;color:var(--brass);flex:none;min-width:120px}
+.res-name{font-family:var(--formal);font-size:19px;color:var(--text)}
+
+@media(max-width:560px){
+  .setup{padding:32px 20px 72px}
+  .seal-row{flex-direction:column;gap:6px}
+  .seal-key{width:auto}
+  .res-row{flex-direction:column;gap:4px}
+  .wheelWrap{width:min(50vh,80vw,340px);height:min(50vh,80vw,340px)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.15s !important}
+}
+
+@media print{
+  body{background:#fff;color:#000}
+  .setup,.controls,.stage-head .rule,.wheelWrap,.prize-label,.brassrule,.sealmark,.idline{display:none}
+  .stage{position:static;display:block;padding:0;height:auto}
+  .reveal{min-height:0}
+  .name.locked,.res-name{color:#000 !important}
+  .record{color:#444}
+  .event-name{color:#000}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E4CD94"/>
+      <stop offset="1" stop-color="#A9863F"/>
+    </linearGradient>
+    <!-- Shorofat Park's mark is a hand-drawn balcony arch; this is an
+         original, simplified line-art rendition of that same motif. -->
+    <symbol id="archIcon" viewBox="0 0 40 46">
+      <path d="M13,31 L13,15 A7,7 0 0 1 27,15 L27,31" fill="none" stroke="url(#goldGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="9" y1="31" x2="31" y2="31" stroke="url(#goldGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="16" y1="31.5" x2="16" y2="37" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="20" y1="31.5" x2="20" y2="37" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="24" y1="31.5" x2="24" y2="37" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="38" x2="32" y2="38" stroke="url(#goldGrad)" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ===================== SETUP ===================== -->
+<main class="setup" id="setup">
+  <div class="topbar">
+    <div class="wordmark" id="wordmark">
+      <svg width="40" height="46" viewBox="0 0 40 46" aria-hidden="true"><use href="#archIcon"/></svg>
+      <span id="wordmarkText">سجلّ السحب</span>
+    </div>
+    <div class="langtoggle" role="group">
+      <button id="btnAr" aria-pressed="true">عربي</button>
+      <button id="btnEn" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="eventName" data-ar="اسم المناسبة" data-en="Event name">اسم المناسبة</label>
+    <input type="text" id="eventName" data-ar-ph="مثال: سحب شُرفات بارك ٢٠٢٦" data-en-ph="e.g. Shorofat Park Draw 2026" placeholder="مثال: سحب شُرفات بارك ٢٠٢٦">
+  </div>
+
+  <div class="field">
+    <div class="blockhead">
+      <label for="entrants" data-ar="قائمة المشاركين" data-en="Entrant list">قائمة المشاركين</label>
+      <span class="count" id="count">0</span>
+    </div>
+    <div class="srctabs" role="group">
+      <button id="tabPaste" aria-pressed="true" data-ar="لصق يدوي" data-en="Paste">لصق يدوي</button>
+      <button id="tabSheet" aria-pressed="false" data-ar="ربط Google Sheet" data-en="Link Google Sheet">ربط Google Sheet</button>
+    </div>
+
+    <div class="sheetbox" id="sheetbox">
+      <div class="sheetrow">
+        <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv">
+        <button id="connectBtn" data-ar="اتصال" data-en="Connect">اتصال</button>
+      </div>
+      <div class="synced">
+        <span class="dot" id="syncDot"></span>
+        <span id="syncMsg"></span>
+        <button class="lockbtn" id="lockBtn" disabled data-ar="إقفال القائمة" data-en="Lock list">إقفال القائمة</button>
+      </div>
+      <div class="errmsg" id="errmsg"></div>
+      <label class="opt" style="margin-top:8px">
+        <input type="checkbox" id="hasHeader" checked>
+        <span data-ar="السطر الأول عناوين أعمدة" data-en="First row is column headers">السطر الأول عناوين أعمدة</span>
+      </label>
+      <div class="helpsteps" id="helpsteps"></div>
+    </div>
+
+    <textarea id="entrants" data-ar-ph="الصق الأسماء من الجدول، اسم في كل سطر" data-en-ph="Paste names from your sheet, one per line" placeholder="الصق الأسماء من الجدول، اسم في كل سطر"></textarea>
+    <div class="opts">
+      <label class="opt"><input type="checkbox" id="dedupe" checked><span data-ar="حذف المكرر" data-en="Remove duplicates">حذف المكرر</span></label>
+      <label class="opt"><input type="checkbox" id="maskNums"><span data-ar="إخفاء الأرقام" data-en="Mask phone digits">إخفاء الأرقام</span></label>
+      <span class="colpick" id="colpick">
+        <span data-ar="العمود المعروض" data-en="Show column">العمود المعروض</span>
+        <select id="colsel"></select>
+      </span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label data-ar="الجوائز" data-en="Prizes">الجوائز</label>
+    <div id="prizes"></div>
+    <button class="addprize" id="addPrize" data-ar="إضافة جائزة" data-en="Add prize">إضافة جائزة</button>
+  </div>
+
+  <div class="seal-block">
+    <div class="seal-row">
+      <span class="seal-key" data-ar="بصمة القائمة" data-en="List seal">بصمة القائمة</span>
+      <span class="seal-val" id="fpVal">—</span>
+    </div>
+    <p class="seal-note" id="fpNote">
+      انشر هذه البصمة قبل السحب. أي تعديل على قائمة المشاركين — ولو حرف واحد — يغيّرها بالكامل، فلا يمكن لأحد ادّعاء أن القائمة عُدّلت بعد الإعلان.
+    </p>
+  </div>
+
+  <button class="start" id="openStage" disabled data-ar="فتح شاشة السحب" data-en="Open draw screen">فتح شاشة السحب</button>
+</main>
+
+<!-- ===================== STAGE ===================== -->
+<section class="stage" id="stage" aria-live="polite">
+  <div class="stage-head">
+    <div class="event-name" id="stageEvent"></div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="reveal">
+    <div class="prize-label" id="prizeLabel"></div>
+
+    <div class="wheelWrap" id="wheelWrap">
+      <div class="pointer" aria-hidden="true"></div>
+      <div class="wheelRing" aria-hidden="true"></div>
+      <canvas class="wheelCanvas" id="wheelCanvas" aria-hidden="true"></canvas>
+      <div class="wheelHub" aria-hidden="true"></div>
+    </div>
+
+    <div class="namebox"><div class="name" id="name">—</div></div>
+    <div class="brassrule" id="brassrule"></div>
+    <svg class="sealmark" id="sealmark" width="46" height="53" viewBox="0 0 40 46" aria-hidden="true"><use href="#archIcon"/></svg>
+    <div class="idline" id="idline"></div>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <div class="stage-foot">
+    <div class="controls">
+      <button class="ctl primary" id="drawBtn"></button>
+      <button class="ctl" id="fsBtn" data-ar="ملء الشاشة" data-en="Fullscreen">ملء الشاشة</button>
+      <button class="ctl" id="printBtn" data-ar="طباعة المحضر" data-en="Print record">طباعة المحضر</button>
+      <button class="ctl" id="backBtn" data-ar="رجوع" data-en="Back">رجوع</button>
+    </div>
+    <div class="record" id="record"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- state ---------- */
+var lang = "ar";
+var pool = [];          // remaining candidates (full list, no cap)
+var allEntries = [];    // full committed list at stage-open time
+var winners = [];       // {prize, name}
+var prizes = [];
+var fingerprint = "—";
+var drawIndex = 0;
+var busy = false;
+var lockedAt = null;    // when the entrant list was frozen for the draw
+var cols = 1;
+
+var T = {
+  ar:{ drawNow:"أدر العجلة", drawing:"العجلة تدور…", next:"السحب التالي", done:"اكتمل السحب",
+       entries:"مشارك", sealLbl:"بصمة القائمة", timeLbl:"وقت إقفال القائمة", noTime:"لم تُقفل بعد",
+       prizeDefault:["الجائزة الأولى","الجائزة الثانية"], ordinal:"الجائزة",
+       fpNote:"انشر هذه البصمة قبل السحب. أي تعديل على قائمة المشاركين — ولو حرف واحد — يغيّرها بالكامل، فلا يمكن لأحد ادّعاء أن القائمة عُدّلت بعد الإعلان.",
+       fpWeak:"تعذّر حساب البصمة المشفّرة في هذا المتصفح؛ هذه بصمة مبسّطة.",
+       dupWarn:"مكرر",
+       syncIdle:"غير متصل", syncing:"جارٍ الاتصال…",
+       syncLive:"متصل — يتحدّث تلقائياً كل ١٠ ثوانٍ · آخر تحديث ",
+       syncLocked:"القائمة مقفلة عند ", syncNames:" اسم",
+       lockDone:"مقفلة",
+       help:"في Google Sheet: أنشئ تبويباً جديداً يحتوي فقط على عمود الأسماء (مثلاً بمعادلة =QUERY) ثم: ملف ← مشاركة ← نشر على الويب ← اختر ذلك التبويب فقط ← الصيغة: قيم مفصولة بفواصل (.csv) ← نشر. لا تنشر التبويب الذي يحتوي على أرقام الهواتف. انسخ رابط النشر والصقه هنا.",
+       errNetwork:"تعذّر الوصول إلى الرابط. الأسباب المحتملة: انقطع الاتصال بالإنترنت، أو أن الشيت لم يُنشر على الويب بعد (يمنع المتصفح القراءة من رابط غير منشور - CORS). راجع خطوات النشر أدناه.",
+       errHtml:"هذا رابط صفحة الشيت العادية، وليس رابط النشر بصيغة CSV. اذهب إلى ملف ← مشاركة ← نشر على الويب واستخدم الرابط الذي ينتهي بـ output=csv.",
+       errHttp:"الرابط أعاد خطأ (قد يكون محذوفاً أو غير مكتمل). انسخه مجدداً من نافذة النشر." },
+  en:{ drawNow:"Spin the wheel", drawing:"Spinning…", next:"Next spin", done:"Draw complete",
+       entries:"entries", sealLbl:"List seal", timeLbl:"List locked at", noTime:"not locked yet",
+       prizeDefault:["First prize","Second prize"], ordinal:"Prize",
+       fpNote:"Publish this seal before the draw. Changing the entrant list by even one character changes it completely, so nobody can claim the list was edited after the result.",
+       fpWeak:"This browser could not compute a cryptographic seal; a simplified one is shown.",
+       dupWarn:"duplicates",
+       syncIdle:"Not connected", syncing:"Connecting…",
+       syncLive:"Live — refreshing every 10s · last update ",
+       syncLocked:"List locked at ", syncNames:" names",
+       lockDone:"Locked",
+       help:"In Google Sheets: create a new tab containing only the display column (e.g. with =QUERY), then File → Share → Publish to web → select that tab only → format: Comma-separated values (.csv) → Publish. Never publish the tab holding phone numbers. Copy that link and paste it here.",
+       errNetwork:"Could not reach that link. Likely causes: the internet connection dropped, or the sheet hasn't been published to the web yet (the browser blocks reads from an unpublished link — CORS). Check the publish steps below.",
+       errHtml:"That's the normal sheet link, not a published CSV link. Go to File → Share → Publish to web and use the link that ends in output=csv.",
+       errHttp:"That link returned an error (it may be deleted or incomplete). Copy it again from the publish dialog." }
+};
+
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------- unbiased random (rejection sampling, no modulo bias) ---------- */
+function randInt(max){
+  if(max<=0) return 0;
+  if(!(window.crypto && window.crypto.getRandomValues)) return Math.floor(Math.random()*max);
+  var limit = Math.floor(4294967296/max)*max, buf = new Uint32Array(1), v;
+  do{ window.crypto.getRandomValues(buf); v = buf[0]; } while(v>=limit);
+  return v % max;
+}
+function shuffle(arr){
+  for(var i=arr.length-1;i>0;i--){
+    var j = randInt(i+1);
+    var t = arr[i]; arr[i]=arr[j]; arr[j]=t;
+  }
+  return arr;
+}
+
+/* ---------- seal / fingerprint ---------- */
+function weakHash(s){
+  var h = 2166136261;
+  for(var i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h,16777619); }
+  return ("00000000"+(h>>>0).toString(16)).slice(-8).repeat(4);
+}
+function computeSeal(list, cb){
+  var joined = list.join("\n");
+  if(window.crypto && window.crypto.subtle && window.TextEncoder){
+    window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(joined))
+      .then(function(buf){
+        var b = new Uint8Array(buf), out = "";
+        for(var i=0;i<b.length;i++) out += ("0"+b[i].toString(16)).slice(-2);
+        cb(out, true);
+      })
+      .catch(function(){ cb(weakHash(joined), false); });
+  } else { cb(weakHash(joined), false); }
+}
+function groupSeal(h){
+  return h.slice(0,24).toUpperCase().replace(/(.{4})/g,"$1 ").trim();
+}
+
+/* ---------- delimiter-aware parsing (handles quoted commas, no naive split) ---------- */
+function detectDelim(raw){
+  var sample = raw.split(/\r?\n/).slice(0,20).join("\n");
+  return sample.indexOf("\t") !== -1 ? "\t" : ",";
+}
+function splitRow(line, delim){
+  var out = [], cur = "", q = false;
+  for(var i=0;i<line.length;i++){
+    var ch = line[i];
+    if(q){
+      if(ch === '"'){ if(line[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === delim){ out.push(cur); cur = ""; }
+      else cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+function detectCols(raw, delim){
+  var lines = raw.split(/\r?\n/).filter(function(l){ return l.trim(); });
+  var n = 1;
+  for(var i=0;i<Math.min(lines.length,30);i++){
+    var c = splitRow(lines[i], delim).length;
+    if(c>n) n = c;
+  }
+  return Math.min(n,8);
+}
+/* full CSV parser for the fetched published sheet text (quote-aware, handles embedded newlines in quoted cells) */
+function parseSheetCSV(text){
+  var rows = [], row = [], cur = "", q = false;
+  for(var i=0;i<text.length;i++){
+    var ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === ","){ row.push(cur); cur = ""; }
+      else if(ch === "\n"){ row.push(cur); rows.push(row); row = []; cur = ""; }
+      else if(ch !== "\r") cur += ch;
+    }
+  }
+  row.push(cur); rows.push(row);
+  return rows.filter(function(r){
+    return r.some(function(c){ return c.trim() !== ""; });
+  });
+}
+function maskDigits(s){
+  return s.replace(/\d{4,}/g, function(m){
+    return m.slice(0,3) + "•".repeat(Math.max(m.length-6,2)) + m.slice(-3);
+  });
+}
+function parseEntries(){
+  var raw = $("entrants").value;
+  var delim = detectDelim(raw);
+  cols = detectCols(raw, delim);
+  var picker = $("colpick"), sel = $("colsel");
+  if(cols>1){
+    picker.classList.add("on");
+    if(sel.options.length !== cols){
+      sel.innerHTML = "";
+      for(var c=1;c<=cols;c++){
+        var o = document.createElement("option");
+        o.value = String(c); o.textContent = String(c);
+        sel.appendChild(o);
+      }
+    }
+  } else { picker.classList.remove("on"); }
+  var useCol = parseInt(sel.value||"1",10) - 1;
+
+  var lines = raw.split(/\r?\n/), out = [], dupCount = 0, seen = {};
+  for(var i=0;i<lines.length;i++){
+    var line = lines[i].trim();
+    if(!line) continue;
+    var parts = splitRow(line, delim);
+    var val = (cols>1 && parts[useCol] !== undefined ? parts[useCol] : parts[0]).trim();
+    if(!val) continue;
+    var key = val.replace(/\s+/g," ").toLowerCase();
+    if(seen[key]){
+      dupCount++;
+      if($("dedupe").checked) continue;
+    } else { seen[key] = 1; }
+    out.push($("maskNums").checked ? maskDigits(val) : val);
+  }
+  return { list: out, dupes: dupCount };
+}
+
+/* ---------- prizes ---------- */
+function renderPrizes(){
+  var box = $("prizes");
+  box.innerHTML = "";
+  prizes.forEach(function(p,i){
+    var row = document.createElement("div"); row.className = "prize";
+    var ord = document.createElement("span"); ord.className = "ord"; ord.textContent = String(i+1);
+    var inp = document.createElement("input");
+    inp.type = "text"; inp.value = p;
+    inp.addEventListener("input", function(){ prizes[i] = inp.value; });
+    row.appendChild(ord); row.appendChild(inp);
+    if(prizes.length>1){
+      var del = document.createElement("button");
+      del.className = "del"; del.type = "button"; del.textContent = "×";
+      del.setAttribute("aria-label","remove");
+      del.addEventListener("click", function(){ prizes.splice(i,1); renderPrizes(); });
+      row.appendChild(del);
+    }
+    box.appendChild(row);
+  });
+}
+
+/* ---------- setup refresh ---------- */
+var refreshTimer = null;
+function refresh(){
+  var r = parseEntries();
+  var cEl = $("count");
+  cEl.textContent = r.list.length + " " + T[lang].entries + (r.dupes ? " · " + r.dupes + " " + T[lang].dupWarn : "");
+  cEl.className = "count" + (r.dupes ? " warn" : "");
+  $("openStage").disabled = r.list.length < 2;
+
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(function(){
+    if(!r.list.length){ $("fpVal").textContent = "—"; fingerprint = "—"; return; }
+    computeSeal(r.list, function(h, strong){
+      fingerprint = h;
+      $("fpVal").textContent = groupSeal(h);
+      $("fpNote").textContent = strong ? T[lang].fpNote : T[lang].fpWeak + " " + T[lang].fpNote;
+    });
+  }, 180);
+}
+
+/* ---------- language ---------- */
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = (l === "ar" ? "rtl" : "ltr");
+  $("btnAr").setAttribute("aria-pressed", String(l==="ar"));
+  $("btnEn").setAttribute("aria-pressed", String(l==="en"));
+  $("wordmarkText").textContent = (l==="ar" ? "سجلّ السحب" : "Draw Register");
+  document.title = (l==="ar" ? "السحب الرسمي" : "Official Draw");
+
+  var nodes = document.querySelectorAll("[data-ar]");
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent = nodes[i].getAttribute("data-"+l);
+  var phs = document.querySelectorAll("[data-ar-ph]");
+  for(var j=0;j<phs.length;j++) phs[j].placeholder = phs[j].getAttribute("data-"+l+"-ph");
+  $("helpsteps").textContent = T[lang].help;
+
+  updateDrawBtn();
+  renderRecord();
+  refresh();
+  wheel.setLang(l);
+  wheel.redraw();
+}
+
+/* ---------- stage ---------- */
+function updateDrawBtn(){
+  var b = $("drawBtn");
+  if(busy){ b.textContent = T[lang].drawing; b.disabled = true; return; }
+  if(drawIndex >= prizes.length){ b.textContent = T[lang].done; b.disabled = true; return; }
+  b.disabled = false;
+  b.textContent = (drawIndex === 0 ? T[lang].drawNow : T[lang].next);
+}
+
+function renderRecord(){
+  var t = lockedAt
+    ? lockedAt.toLocaleString(lang==="ar" ? "ar-SA" : "en-GB", {dateStyle:"medium", timeStyle:"short"})
+    : T[lang].noTime;
+  $("record").innerHTML =
+    '<span>' + allEntries.length + " " + T[lang].entries + '</span>' +
+    '<span>' + T[lang].sealLbl + ' <span class="mono">' + groupSeal(fingerprint) + '</span></span>' +
+    '<span>' + T[lang].timeLbl + ': ' + t + '</span>';
+}
+
+function renderResults(){
+  var box = $("results");
+  if(!winners.length){ box.classList.remove("on"); box.innerHTML = ""; return; }
+  if(drawIndex < prizes.length){ box.classList.remove("on"); return; }
+  box.innerHTML = winners.map(function(w){
+    return '<div class="res-row"><span class="res-prize">' + esc(w.prize) +
+           '</span><span class="res-name">' + esc(w.name) + '</span></div>';
+  }).join("");
+  box.classList.add("on");
+}
+function esc(s){
+  return String(s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+  });
+}
+
+function openStage(){
+  var r = parseEntries();
+  allEntries = r.list.slice();
+  pool = r.list.slice();
+  winners = [];
+  drawIndex = 0;
+  if(!lockedAt) lockedAt = new Date();
+  $("stageEvent").textContent = $("eventName").value.trim() ||
+    (lang==="ar" ? "السحب الرسمي" : "Official Draw");
+  $("name").textContent = "—";
+  $("name").className = "name";
+  $("prizeLabel").classList.remove("show");
+  $("brassrule").classList.remove("draw");
+  $("sealmark").classList.remove("show");
+  $("idline").classList.remove("show");
+  $("results").classList.remove("on");
+  $("setup").style.display = "none";
+  $("stage").classList.add("on");
+  updateDrawBtn();
+  renderRecord();
+  wheel.setSegments(shuffle(pool.slice()).slice(0, Math.min(pool.length,24)), -1);
+  wheel.resize();
+  wheel.redraw();
+}
+
+function closeStage(){
+  $("stage").classList.remove("on");
+  $("setup").style.display = "";
+  if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+}
+
+/* ============ WHEEL ============ */
+/* Winner is chosen by crypto.getRandomValues over the FULL pool before any
+   animation runs. The wheel is a presentation device: it never decides the
+   winner, it only displays one. If the pool is larger than 24, we sample a
+   24-name display set that always includes the true winner. */
+var wheel = (function(){
+  var canvas = $("wheelCanvas"), ctx = null;
+  var segments = ["—"];
+  var highlightIndex = -1;
+  var rotation = 0;
+  var curLang = "ar";
+  var raf = null;
+
+  function resize(){
+    var rect = canvas.getBoundingClientRect();
+    if(rect.width < 2 || rect.height < 2) return;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    size = rect.width;
+  }
+  var size = 0;
+
+  function truncateToWidth(text, maxWidth){
+    if(ctx.measureText(text).width <= maxWidth) return text;
+    var lo = 0, hi = text.length;
+    while(lo < hi){
+      var mid = (lo+hi+1) >> 1;
+      var t = text.slice(0,mid) + "…";
+      if(ctx.measureText(t).width <= maxWidth) lo = mid; else hi = mid-1;
+    }
+    return lo>0 ? text.slice(0,lo) + "…" : "…";
+  }
+
+  function setSegments(list, hi){
+    segments = list.length ? list : ["—"];
+    highlightIndex = hi;
+  }
+  function setLang(l){ curLang = l; }
+
+  function redraw(){
+    if(!ctx) resize();
+    if(!ctx || size<2) return;
+    var cx = size/2, cy = size/2;
+    var outerR = size/2 - 2;
+    var innerR = outerR * 0.20;
+    ctx.clearRect(0,0,size,size);
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(rotation);
+
+    var n = segments.length;
+    var seg = (Math.PI*2)/n;
+    var colorA = "#232852", colorB = "#181C36";
+    for(var i=0;i<n;i++){
+      var a0 = -Math.PI/2 + i*seg, a1 = a0+seg;
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,outerR,a0,a1);
+      ctx.closePath();
+      if(i === highlightIndex){
+        ctx.fillStyle = "#8A6B33";
+      } else {
+        ctx.fillStyle = (i%2===0) ? colorA : colorB;
+      }
+      ctx.fill();
+    }
+    if(highlightIndex>=0){
+      var ha0 = -Math.PI/2 + highlightIndex*seg, ha1 = ha0+seg;
+      ctx.save();
+      ctx.shadowColor = "rgba(228,205,148,.85)";
+      ctx.shadowBlur = Math.max(10, outerR*0.05);
+      ctx.beginPath();
+      ctx.moveTo(0,0); ctx.arc(0,0,outerR,ha0,ha1); ctx.closePath();
+      ctx.fillStyle = "rgba(228,205,148,.18)";
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.strokeStyle = "#C3A966";
+    ctx.lineWidth = Math.max(1, outerR*0.006);
+    for(i=0;i<n;i++){
+      var ang = -Math.PI/2 + i*seg;
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.lineTo(outerR*Math.cos(ang), outerR*Math.sin(ang));
+      ctx.stroke();
+    }
+
+    var fontSize = Math.max(10, Math.min(15, outerR*0.078));
+    ctx.direction = (curLang === "ar") ? "rtl" : "ltr";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "right";
+    ctx.font = "500 " + fontSize + 'px "Noto Naskh Arabic","Tajawal",system-ui,sans-serif';
+    var pad = Math.max(6, outerR*0.045);
+    var maxW = outerR - innerR - pad*2;
+    for(i=0;i<n;i++){
+      var ac = -Math.PI/2 + i*seg + seg/2;
+      ctx.save();
+      ctx.rotate(ac);
+      var label = truncateToWidth(String(segments[i]), maxW);
+      ctx.fillStyle = (i===highlightIndex) ? "#FFFCF4" : "#F3EEE1";
+      ctx.fillText(label, outerR - pad, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function mod(a,n){ return ((a % n) + n) % n; }
+
+  function spinTo(winnerSegIndex, duration, onDone){
+    var n = segments.length;
+    var seg = (Math.PI*2)/n;
+    var segCenter = -Math.PI/2 + winnerSegIndex*seg + seg/2;
+    var offset = (randInt(1000)/1000 - 0.5) * seg * 0.7;
+    var targetMod = mod(-Math.PI/2 + offset - segCenter, Math.PI*2);
+    var currentMod = mod(rotation, Math.PI*2);
+    var deltaFwd = mod(targetMod - currentMod, Math.PI*2);
+    var extraTurns = 4 + randInt(3); // 4..6 full extra rotations
+    var fromRot = rotation;
+    var toRot = rotation + deltaFwd + extraTurns*Math.PI*2;
+
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(raf) cancelAnimationFrame(raf);
+    if(reduce){
+      rotation = toRot;
+      redraw();
+      onDone();
+      return;
+    }
+    var t0 = null;
+    function step(ts){
+      if(t0===null) t0 = ts;
+      var t = Math.min((ts-t0)/duration, 1);
+      var eased = 1 - Math.pow(1-t, 5);
+      rotation = fromRot + (toRot-fromRot)*eased;
+      redraw();
+      if(t < 1){ raf = requestAnimationFrame(step); }
+      else { rotation = toRot; redraw(); onDone(); }
+    }
+    raf = requestAnimationFrame(step);
+  }
+
+  window.addEventListener("resize", function(){ resize(); redraw(); });
+
+  return { resize:resize, redraw:redraw, setSegments:setSegments, setLang:setLang, spinTo:spinTo };
+})();
+
+/* build a display set of at most 24 names that always includes the real winner */
+function buildDisplaySet(poolArr, winnerIdx){
+  var winnerName = poolArr[winnerIdx];
+  if(poolArr.length <= 24){
+    var items = poolArr.map(function(v,i){ return {name:v, isWinner:i===winnerIdx}; });
+    shuffle(items);
+    return items;
+  }
+  var otherIdx = [];
+  for(var i=0;i<poolArr.length;i++) if(i!==winnerIdx) otherIdx.push(i);
+  shuffle(otherIdx);
+  var chosen = otherIdx.slice(0,23).map(function(i){ return {name:poolArr[i], isWinner:false}; });
+  chosen.push({name:winnerName, isWinner:true});
+  shuffle(chosen);
+  return chosen;
+}
+
+/* ---------- the draw ---------- */
+function runDraw(){
+  if(busy || drawIndex >= prizes.length || pool.length === 0) return;
+  busy = true;
+  updateDrawBtn();
+
+  // Winner chosen NOW, before any animation. The wheel only presents this result.
+  var pick = randInt(pool.length);
+  var winnerName = pool[pick];
+  var prizeName = prizes[drawIndex] || (T[lang].ordinal + " " + (drawIndex+1));
+
+  var displaySet = buildDisplaySet(pool, pick);
+  var winnerSegIndex = displaySet.findIndex(function(d){ return d.isWinner; });
+  wheel.setSegments(displaySet.map(function(d){ return d.name; }), -1);
+  wheel.setLang(lang);
+  wheel.resize();
+
+  var nameEl = $("name"), rule = $("brassrule"), seal = $("sealmark"), idl = $("idline");
+  var pl = $("prizeLabel");
+
+  pl.textContent = prizeName;
+  pl.classList.add("show");
+  rule.classList.remove("draw");
+  seal.classList.remove("show");
+  idl.classList.remove("show");
+  $("results").classList.remove("on");
+  nameEl.textContent = "—";
+  nameEl.className = "name";
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DUR = reduce ? 1 : 6000;
+
+  wheel.spinTo(winnerSegIndex, DUR, function(){
+    wheel.setSegments(displaySet.map(function(d){ return d.name; }), winnerSegIndex);
+    wheel.redraw();
+
+    pool.splice(pick,1);
+    winners.push({prize:prizeName, name:winnerName});
+    drawIndex++;
+
+    nameEl.textContent = winnerName;
+    nameEl.className = "name locked";
+    rule.classList.add("draw");
+    seal.classList.add("show");
+    idl.textContent = (lang==="ar"
+      ? "السحب " + drawIndex + " من " + prizes.length + " · من بين " + allEntries.length + " مشارك"
+      : "Draw " + drawIndex + " of " + prizes.length + " · from " + allEntries.length + " entries");
+    idl.classList.add("show");
+
+    busy = false;
+    updateDrawBtn();
+    renderRecord();
+    renderResults();
+  });
+}
+
+/* ---------- google sheet sync ---------- */
+var pollTimer = null, locked = false, lastSync = null, srcMode = "paste";
+
+function setSync(state, msg){
+  $("syncDot").className = "dot" + (state ? " " + state : "");
+  $("syncMsg").textContent = msg;
+}
+function setErr(msg){
+  var el = $("errmsg");
+  if(msg){ el.textContent = msg; el.classList.add("on"); }
+  else { el.textContent = ""; el.classList.remove("on"); }
+}
+
+function timeStr(d){
+  return d.toLocaleTimeString(lang==="ar" ? "ar-SA" : "en-GB", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+}
+
+function pullSheet(silent){
+  if(locked) return;
+  var url = $("sheetUrl").value.trim();
+  if(!url) return;
+  if(!silent){ setSync("", T[lang].syncing); setErr(null); }
+  fetch(url, {cache:"no-store"})
+    .then(function(r){
+      if(!r.ok){ var e = new Error("http"); e.kind = "http"; throw e; }
+      return r.text();
+    })
+    .then(function(txt){
+      if(locked) return;
+      if(/^\s*</.test(txt)){ var e = new Error("html"); e.kind = "html"; throw e; }
+      var rows = parseSheetCSV(txt);
+      if($("hasHeader").checked && rows.length) rows = rows.slice(1);
+      $("entrants").value = rows.map(function(r){ return r.join("\t"); }).join("\n");
+      lastSync = new Date();
+      refresh();
+      var r2 = parseEntries();
+      setSync("live", T[lang].syncLive + timeStr(lastSync) + " · " + r2.list.length + T[lang].syncNames);
+      setErr(null);
+      $("lockBtn").disabled = false;
+      $("helpsteps").classList.remove("on");
+    })
+    .catch(function(err){
+      var kind = (err && err.kind) || "network";
+      var msg = kind==="html" ? T[lang].errHtml : kind==="http" ? T[lang].errHttp : T[lang].errNetwork;
+      setSync("err", lang==="ar" ? "تعذّر التحديث" : "Update failed");
+      setErr(msg);
+      $("helpsteps").classList.add("on");
+    });
+}
+
+function connectSheet(){
+  if(pollTimer) clearInterval(pollTimer);
+  locked = false;
+  $("lockBtn").disabled = true;
+  $("lockBtn").textContent = (lang==="ar" ? "إقفال القائمة" : "Lock list");
+  $("entrants").readOnly = true;
+  pullSheet(false);
+  pollTimer = setInterval(function(){ pullSheet(true); }, 10000);
+}
+
+function lockList(){
+  locked = true;
+  lockedAt = new Date();
+  if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+  var r = parseEntries();
+  setSync("lock", T[lang].syncLocked + timeStr(lockedAt) + " · " + r.list.length + T[lang].syncNames);
+  setErr(null);
+  $("lockBtn").disabled = true;
+  $("lockBtn").textContent = T[lang].lockDone;
+}
+
+function setSource(mode){
+  srcMode = mode;
+  $("tabPaste").setAttribute("aria-pressed", String(mode === "paste"));
+  $("tabSheet").setAttribute("aria-pressed", String(mode === "sheet"));
+  $("sheetbox").classList.toggle("on", mode === "sheet");
+  if(mode === "paste"){
+    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+    locked = false;
+    $("entrants").readOnly = false;
+  } else {
+    $("entrants").readOnly = true;
+    setSync("", T[lang].syncIdle);
+    setErr(null);
+    $("helpsteps").textContent = T[lang].help;
+    $("helpsteps").classList.add("on");
+  }
+}
+
+/* ---------- wiring ---------- */
+prizes = T.ar.prizeDefault.slice();
+renderPrizes();
+
+$("entrants").addEventListener("input", refresh);
+$("dedupe").addEventListener("change", refresh);
+$("maskNums").addEventListener("change", refresh);
+$("colsel").addEventListener("change", refresh);
+$("addPrize").addEventListener("click", function(){
+  prizes.push(T[lang].ordinal + " " + (prizes.length+1));
+  renderPrizes();
+});
+$("tabPaste").addEventListener("click", function(){ setSource("paste"); });
+$("tabSheet").addEventListener("click", function(){ setSource("sheet"); });
+$("connectBtn").addEventListener("click", connectSheet);
+$("lockBtn").addEventListener("click", lockList);
+$("hasHeader").addEventListener("change", function(){ if(srcMode === "sheet" && !locked) pullSheet(false); });
+$("sheetUrl").addEventListener("keydown", function(e){ if(e.key === "Enter") connectSheet(); });
+
+$("openStage").addEventListener("click", openStage);
+$("drawBtn").addEventListener("click", runDraw);
+$("backBtn").addEventListener("click", closeStage);
+$("printBtn").addEventListener("click", function(){ window.print(); });
+$("fsBtn").addEventListener("click", function(){
+  if(!document.fullscreenElement){
+    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  } else if(document.exitFullscreen){ document.exitFullscreen(); }
+});
+$("btnAr").addEventListener("click", function(){ setLang("ar"); });
+$("btnEn").addEventListener("click", function(){ setLang("en"); });
+
+document.addEventListener("keydown", function(e){
+  if(!$("stage").classList.contains("on")) return;
+  if(e.code === "Space" || e.code === "Enter"){
+    if(document.activeElement && document.activeElement.tagName === "BUTTON") return;
+    e.preventDefault(); runDraw();
+  }
+  if(e.key === "Escape" && !document.fullscreenElement) closeStage();
+});
+
+document.addEventListener("fullscreenchange", function(){
+  setTimeout(function(){ wheel.resize(); wheel.redraw(); }, 60);
+});
+
+wheel.setSegments(["—"], -1);
+refresh();
+})();
+</script>
+</body>
+</html>
