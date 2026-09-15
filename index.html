@@ -307,10 +307,7 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 
   <div class="field">
     <label data-ar="الجوائز" data-en="Prizes">الجوائز</label>
-    <div class="prizes">
-      <div class="prize"><span class="ord">١</span><input type="text" id="prize1" value="الجائزة الأولى"></div>
-      <div class="prize"><span class="ord">٢</span><input type="text" id="prize2" value="الجائزة الثانية"></div>
-    </div>
+    <div class="prizes" id="prizes"></div>
   </div>
 
   <button class="start" id="startDraw" disabled data-ar="ابدأ السحب" data-en="Start draw">ابدأ السحب</button>
@@ -381,6 +378,27 @@ var T = {
 
 var $ = function(id){ return document.getElementById(id); };
 var REEL_ROWS = 40;
+var PRIZE_COUNT = 10;
+var ORDINAL_WORDS = {
+  ar: ["الأولى","الثانية","الثالثة","الرابعة","الخامسة","السادسة","السابعة","الثامنة","التاسعة","العاشرة"],
+  en: ["First","Second","Third","Fourth","Fifth","Sixth","Seventh","Eighth","Ninth","Tenth"]
+};
+var ARABIC_DIGITS = ["٠","١","٢","٣","٤","٥","٦","٧","٨","٩","١٠"];
+
+function renderPrizeFields(){
+  var box = $("prizes");
+  box.innerHTML = "";
+  for(var i=0;i<PRIZE_COUNT;i++){
+    var row = document.createElement("div"); row.className = "prize";
+    var ord = document.createElement("span"); ord.className = "ord";
+    ord.textContent = ARABIC_DIGITS[i+1] || String(i+1);
+    var input = document.createElement("input");
+    input.type = "text"; input.id = "prize" + (i+1);
+    input.value = (lang==="ar" ? "الجائزة " + ORDINAL_WORDS.ar[i] : ORDINAL_WORDS.en[i] + " prize");
+    row.appendChild(ord); row.appendChild(input);
+    box.appendChild(row);
+  }
+}
 
 /* ---------- unbiased random (rejection sampling, no modulo bias) ---------- */
 function randInt(max){
@@ -602,14 +620,15 @@ function setLang(l){
 function updateDrawBtn(){
   var b = $("drawBtn");
   if(busy){ b.textContent = T[lang].drawing; b.disabled = true; return; }
-  if(drawIndex >= prizes.length){ b.textContent = T[lang].done; b.disabled = true; return; }
+  if(drawIndex >= prizes.length || pool.length === 0){ b.textContent = T[lang].done; b.disabled = true; return; }
   b.disabled = false;
   b.textContent = (drawIndex === 0 ? T[lang].startDraw : T[lang].next);
 }
 
 function renderResults(){
   var box = $("results");
-  if(drawIndex < prizes.length || !winners.length){ box.classList.remove("on"); box.innerHTML=""; $("printBtn").style.display="none"; return; }
+  var finished = drawIndex >= prizes.length || pool.length === 0;
+  if(!finished || !winners.length){ box.classList.remove("on"); box.innerHTML=""; $("printBtn").style.display="none"; return; }
   var t = drawnAt ? drawnAt.toLocaleString(lang==="ar" ? "ar-SA" : "en-GB", {dateStyle:"medium", timeStyle:"short"}) : "";
   box.innerHTML = winners.map(function(w){
     return '<div class="res-row"><span class="res-prize">' + esc(w.prize) +
@@ -629,7 +648,11 @@ function openStage(){
   var r = parseEntries();
   allEntries = r.list.slice();
   pool = r.list.slice();
-  prizes = [$("prize1").value.trim() || T[lang].ordinal + " 1", $("prize2").value.trim() || T[lang].ordinal + " 2"];
+  prizes = [];
+  for(var pi=0; pi<PRIZE_COUNT; pi++){
+    var pField = $("prize" + (pi+1));
+    prizes.push((pField && pField.value.trim()) || (T[lang].ordinal + " " + (pi+1)));
+  }
   winners = [];
   drawIndex = 0;
   drawnAt = null;
@@ -811,6 +834,7 @@ document.addEventListener("fullscreenchange", function(){
   if(!document.fullscreenElement && $("stage").classList.contains("on")) closeStage();
 });
 
+renderPrizeFields();
 $("helpsteps").textContent = T[lang].help;
 refresh();
 connectSheet(); // Sheet tab is the default source — connect immediately, no click needed
