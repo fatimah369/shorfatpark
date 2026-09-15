@@ -179,9 +179,9 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 
 /* wheel */
 .wheelWrap{
-  position:relative;flex:1 1 auto;min-height:0;
-  width:min(58vh,58vw,520px);height:min(58vh,58vw,520px);
-  max-width:100%;
+  position:relative;flex:1 1 0;min-height:0;min-width:0;
+  aspect-ratio:1;width:auto;
+  max-width:min(58vw,520px);max-height:100%;
 }
 .wheelRing{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;
@@ -260,7 +260,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
   .seal-row{flex-direction:column;gap:6px}
   .seal-key{width:auto}
   .res-row{flex-direction:column;gap:4px}
-  .wheelWrap{width:min(50vh,80vw,340px);height:min(50vh,80vw,340px)}
+  .wheelWrap{max-width:min(80vw,340px)}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -477,6 +477,20 @@ function shuffle(arr){
   }
   return arr;
 }
+/* pick k random elements from arr without shuffling the whole thing —
+   matters once the entrant list runs into the thousands and we only
+   ever need 23-24 of them for the wheel. */
+function sampleK(arr, k){
+  var n = arr.length;
+  k = Math.min(k, n);
+  var a = arr.slice();
+  for(var i=0;i<k;i++){
+    var j = i + randInt(n-i);
+    var t = a[i]; a[i]=a[j]; a[j]=t;
+  }
+  a.length = k;
+  return a;
+}
 
 /* ---------- seal / fingerprint ---------- */
 function weakHash(s){
@@ -573,7 +587,7 @@ function parseEntries(){
   } else { picker.classList.remove("on"); }
   var useCol = parseInt(sel.value||"1",10) - 1;
 
-  var lines = raw.split(/\r?\n/), out = [], dupCount = 0, seen = {};
+  var lines = raw.split(/\r?\n/), out = [], dupCount = 0, seen = Object.create(null);
   for(var i=0;i<lines.length;i++){
     var line = lines[i].trim();
     if(!line) continue;
@@ -709,7 +723,7 @@ function openStage(){
   $("stage").classList.add("on");
   updateDrawBtn();
   renderRecord();
-  wheel.setSegments(shuffle(pool.slice()).slice(0, Math.min(pool.length,24)), -1);
+  wheel.setSegments(sampleK(pool, 24), -1);
   wheel.resize();
   wheel.redraw();
 }
@@ -736,12 +750,14 @@ var wheel = (function(){
   function resize(){
     var rect = canvas.getBoundingClientRect();
     if(rect.width < 2 || rect.height < 2) return;
+    // Guard against a non-square box (e.g. a squashed flex container):
+    // always draw into a square buffer so the circle can never clip.
     var dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
+    size = Math.min(rect.width, rect.height);
+    canvas.width = Math.round(size * dpr);
+    canvas.height = Math.round(size * dpr);
     ctx = canvas.getContext("2d");
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    size = rect.width;
   }
   var size = 0;
 
@@ -865,6 +881,13 @@ var wheel = (function(){
   }
 
   window.addEventListener("resize", function(){ resize(); redraw(); });
+  // The wheel's box can also change from layout shifts that aren't a window
+  // resize — e.g. the results list appearing after the second draw pushes
+  // the flex column and reflows wheelWrap. Watch the box itself so the
+  // canvas bitmap never lags behind (and briefly renders stretched).
+  if(window.ResizeObserver){
+    new ResizeObserver(function(){ resize(); redraw(); }).observe(canvas.parentElement);
+  }
 
   return { resize:resize, redraw:redraw, setSegments:setSegments, setLang:setLang, spinTo:spinTo };
 })();
@@ -879,8 +902,7 @@ function buildDisplaySet(poolArr, winnerIdx){
   }
   var otherIdx = [];
   for(var i=0;i<poolArr.length;i++) if(i!==winnerIdx) otherIdx.push(i);
-  shuffle(otherIdx);
-  var chosen = otherIdx.slice(0,23).map(function(i){ return {name:poolArr[i], isWinner:false}; });
+  var chosen = sampleK(otherIdx, 23).map(function(i){ return {name:poolArr[i], isWinner:false}; });
   chosen.push({name:winnerName, isWinner:true});
   shuffle(chosen);
   return chosen;
