@@ -8,37 +8,108 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap');
 
 :root{
-  /* Saudi National Day 96 ("عزّنا بطبعنا") green-and-gold, with the same
-     gold accent and arch mark carried over from the Shorofat Park admin
-     screen so the two feel like one system. */
-  --bg:#0B3D2E;
-  --surface:#124F3D;
-  --line:#1C5C46;
-  --text:#F3EEE1;
-  --muted:#BFCBA8;
+  --bg:#F9F6EF;
+  --surface:#FFFFFF;
+  --line:#E3DAC4;
+  --text:#191D3A;
+  --muted:#83786C;
   --brass:#C3A966;
   --brass-bright:#E4CD94;
   --brass-dim:#A9863F;
   --on-gold:#191D3A;
   --ui:"Tajawal","Segoe UI",system-ui,sans-serif;
   --formal:"Noto Naskh Arabic",Georgia,serif;
+  --reelRowH:clamp(64px,12vh,140px);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  background:var(--bg) url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140'><path d='M25,120 L25,55 A25,25 0 0 1 75,55 L75,120' fill='none' stroke='rgba(243,238,225,0.07)' stroke-width='2.2' stroke-linecap='round'/><line x1='18' y1='120' x2='82' y2='120' stroke='rgba(243,238,225,0.07)' stroke-width='2.2' stroke-linecap='round'/><line x1='34' y1='120' x2='34' y2='129' stroke='rgba(243,238,225,0.07)' stroke-width='2' stroke-linecap='round'/><line x1='50' y1='120' x2='50' y2='129' stroke='rgba(243,238,225,0.07)' stroke-width='2' stroke-linecap='round'/><line x1='66' y1='120' x2='66' y2='129' stroke='rgba(243,238,225,0.07)' stroke-width='2' stroke-linecap='round'/><line x1='15' y1='130' x2='85' y2='130' stroke='rgba(243,238,225,0.07)' stroke-width='2.2' stroke-linecap='round'/></svg>") repeat-x bottom / 130px 180px;
+  background:var(--bg);
   color:var(--text);
   font-family:var(--ui);
   font-weight:300;
   -webkit-font-smoothing:antialiased;
 }
 
+/* Stage runs Saudi National Day 96 ("عزّنا بطبعنا") green-and-gold; the
+   gold accent and arch mark carry over from the setup screen so both
+   feel like one system. */
 .stage{
-  display:flex;position:fixed;inset:0;
+  --bg:#0B3D2E;
+  --surface:#124F3D;
+  --line:#1C5C46;
+  --text:#F3EEE1;
+  --muted:#BFCBA8;
+}
+
+/* ============ SETUP ============ */
+.setup{max-width:680px;margin:0 auto;padding:48px 28px 96px}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+.wordmark svg{display:block}
+.langtoggle{display:flex;gap:2px;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.langtoggle button{
+  background:none;border:0;color:var(--muted);font-family:var(--ui);font-size:12px;
+  padding:6px 13px;cursor:pointer;font-weight:400;
+}
+.langtoggle button[aria-pressed="true"]{background:var(--surface);color:var(--text)}
+
+.field{margin-bottom:32px}
+.field > label,.blockhead{
+  display:block;font-size:13px;color:var(--muted);margin-bottom:9px;font-weight:400;
+}
+.blockhead{display:flex;justify-content:space-between;align-items:baseline}
+.count{color:var(--brass);font-variant-numeric:tabular-nums;font-size:13px}
+.count.warn{color:#C87B5A}
+
+input[type=text],textarea{
+  width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:2px;color:var(--text);font-family:var(--ui);font-size:15px;
+  font-weight:300;padding:11px 13px;
+}
+textarea{min-height:180px;resize:vertical;line-height:1.85;font-size:14px}
+input:focus-visible,textarea:focus-visible,button:focus-visible{
+  outline:2px solid var(--brass);outline-offset:2px;
+}
+::placeholder{color:var(--muted)}
+
+.dropzone{
+  border:1px dashed var(--line);border-radius:2px;padding:16px;margin-top:10px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  font-size:13px;color:var(--muted);cursor:pointer;
+}
+.dropzone.drag{border-color:var(--brass);background:var(--surface)}
+.dropzone button{
+  background:none;border:1px solid var(--line);color:var(--text);font-family:var(--ui);
+  font-size:12.5px;padding:6px 14px;border-radius:2px;cursor:pointer;flex:none;
+}
+.dropzone button:hover{border-color:var(--brass-dim)}
+
+.opts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:14px;align-items:center}
+.opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
+.opt input{accent-color:var(--brass);width:15px;height:15px;cursor:pointer}
+
+.prizes{display:flex;flex-direction:column;gap:10px}
+.prize{display:flex;gap:10px;align-items:center}
+.prize .ord{font-family:var(--formal);color:var(--brass-dim);font-size:15px;width:22px;text-align:center;flex:none}
+.prize input{flex:1}
+
+.start{
+  display:block;width:100%;background:var(--brass);border:0;border-radius:2px;color:var(--on-gold);
+  font-family:var(--ui);font-weight:500;font-size:15px;padding:15px;cursor:pointer;margin-top:8px;
+  text-align:center;
+}
+.start:hover:not(:disabled){background:var(--brass-dim)}
+.start:disabled{background:var(--surface);color:var(--muted);cursor:not-allowed}
+
+/* ============ STAGE ============ */
+.stage{
+  display:none;position:fixed;inset:0;background:var(--bg);
   flex-direction:column;align-items:center;justify-content:space-between;
   padding:24px 28px;text-align:center;overflow:hidden;
 }
+.stage.on{display:flex}
 
 .stage-head{width:100%;max-width:900px;flex:none}
 .ndBadge{
@@ -50,7 +121,7 @@ body{
 
 .reveal{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  width:100%;max-width:1000px;gap:14px;min-height:0;
+  width:100%;gap:14px;min-height:0;
 }
 .prize-label{
   font-size:clamp(13px,1.6vw,16px);color:var(--brass);font-weight:400;
@@ -58,55 +129,44 @@ body{
 }
 .prize-label.show{opacity:1}
 
-/* wheel */
-.wheelWrap{
-  position:relative;flex:1 1 0;min-height:0;min-width:0;
-  aspect-ratio:1;width:auto;
-  max-width:min(58vw,520px);max-height:100%;
+/* ---------- name reel ---------- */
+/* Fixed size via a plain formula, not flex-grow/shrink — a flex-resized
+   box here reproduced two different distortions in testing (flex-shrink
+   squashing it short, flex-grow stretching it tall) depending on how much
+   sibling content was around it. A fixed height sidesteps the whole class
+   of bug: worst case on an unusually short viewport is clipping (visible,
+   obviously wrong, fixable by using fullscreen), never silent distortion. */
+.reelViewport{
+  position:relative;width:100%;height:min(64vh,640px);flex:0 0 auto;
+  overflow:hidden;border:1px solid var(--brass-dim);border-radius:4px;
 }
-.wheelRing{
-  position:absolute;inset:0;border-radius:50%;pointer-events:none;
-  border:6px solid var(--brass);
-  box-shadow:0 0 0 1px var(--brass-dim) inset, 0 6px 30px rgba(0,0,0,.45);
+.reelStrip{position:absolute;top:0;left:0;width:100%;will-change:transform}
+.reelRow{
+  height:var(--reelRowH);display:flex;align-items:center;justify-content:center;
+  font-family:var(--formal);font-weight:400;color:var(--text);
+  font-size:clamp(28px,6vw,64px);white-space:nowrap;padding:0 5vw;
 }
-.wheelCanvas{position:absolute;inset:8px;border-radius:50%;display:block;width:calc(100% - 16px);height:calc(100% - 16px)}
-.wheelHub{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:9%;height:9%;border-radius:50%;background:var(--brass);
-  box-shadow:0 0 0 3px var(--bg), 0 0 0 4px var(--brass-dim);pointer-events:none;
+.reelRow.long{font-size:clamp(20px,4.2vw,44px)}
+.reelRow:nth-child(odd){background:var(--surface)}
+.reelRow:nth-child(even){background:var(--bg)}
+.reelRow.winnerRow{
+  position:relative;z-index:1;
+  transition:transform .5s cubic-bezier(.2,.7,.3,1), color .5s ease, text-shadow .5s ease;
 }
-.pointer{
-  position:absolute;left:50%;top:-13px;transform:translateX(-50%);
-  width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;
-  border-top:22px solid var(--brass);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));z-index:2;
+.reelRow.winnerRow.settled{
+  transform:scale(1.06);
+  color:#FFFCF4;
+  text-shadow:0 0 26px rgba(228,205,148,.85), 0 0 52px rgba(195,169,102,.55);
 }
-
-.namebox{
-  min-height:clamp(60px,11vh,110px);display:flex;align-items:center;justify-content:center;
-  width:100%;position:relative;flex:none;
+.reelHighlight{
+  position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  height:var(--reelRowH);
+  border-top:2px solid var(--brass);border-bottom:2px solid var(--brass);
+  pointer-events:none;z-index:2;
 }
-.name{
-  font-family:var(--formal);font-weight:400;
-  font-size:clamp(26px,5.2vw,58px);line-height:1.25;color:var(--text);
-  padding:0 10px;
-}
-.name.locked{color:var(--text);animation:settle .75s cubic-bezier(.2,.7,.3,1)}
-@keyframes settle{
-  0%{transform:scale(1.035);opacity:.45}
-  100%{transform:scale(1);opacity:1}
-}
-
-.brassrule{height:1px;background:var(--brass);width:0;transition:width .85s cubic-bezier(.25,.8,.3,1);max-width:520px;flex:none}
-.brassrule.draw{width:100%}
-
-.sealmark{opacity:0;transition:opacity .7s .35s;flex:none}
-.sealmark.show{opacity:1}
-
-.idline{
-  font-size:13px;color:var(--muted);min-height:20px;opacity:0;transition:opacity .6s .5s;
-  font-variant-numeric:tabular-nums;flex:none;
-}
-.idline.show{opacity:1}
+.reelFade{position:absolute;left:0;right:0;height:30%;pointer-events:none;z-index:3}
+.reelFade.top{top:0;background:linear-gradient(to bottom, var(--bg) 0%, transparent 100%)}
+.reelFade.bottom{bottom:0;background:linear-gradient(to top, var(--bg) 0%, transparent 100%)}
 
 .stage-foot{width:100%;max-width:1000px;display:flex;flex-direction:column;gap:16px;flex:none}
 .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
@@ -120,14 +180,6 @@ body{
 .ctl.primary:hover:not(:disabled){background:var(--brass-dim)}
 .ctl:disabled{opacity:.35;cursor:not-allowed}
 
-.record{
-  border-top:1px solid var(--line);padding-top:12px;
-  display:flex;justify-content:center;gap:8px 30px;flex-wrap:wrap;
-  font-size:11.5px;color:var(--muted);
-}
-.record span{font-variant-numeric:tabular-nums}
-.record .mono{font-family:ui-monospace,Menlo,monospace;direction:ltr;letter-spacing:.06em}
-
 /* ============ RESULTS ============ */
 .results{display:none;width:100%;max-width:620px;margin:0 auto;text-align:start}
 .results.on{display:block}
@@ -135,23 +187,26 @@ body{
 .res-row:first-child{border-top:1px solid var(--line)}
 .res-prize{font-size:13px;color:var(--brass);flex:none;min-width:120px}
 .res-name{font-family:var(--formal);font-size:19px;color:var(--text)}
+.res-meta{font-size:12px;color:var(--muted);margin-top:10px;font-variant-numeric:tabular-nums}
 
 @media(max-width:560px){
+  .setup{padding:32px 20px 72px}
   .res-row{flex-direction:column;gap:4px}
-  .wheelWrap{max-width:min(80vw,340px)}
+  .reelViewport{height:min(52vh,440px)}
 }
 
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;transition-duration:.15s !important}
+  .reelStrip{transition:none !important}
 }
 
 @media print{
   body{background:#fff;color:#000}
-  .controls,.stage-head .rule,.wheelWrap,.prize-label,.brassrule,.sealmark,.idline,.ndBadge{display:none}
+  .setup,.controls,.stage-head .rule,.reelViewport,.prize-label,.ndBadge{display:none}
   .stage{position:static;display:block;padding:0;height:auto}
   .reveal{min-height:0}
-  .name.locked,.res-name{color:#000 !important}
-  .record{color:#444}
+  .res-name{color:#000 !important}
+  .res-meta{color:#444}
   .event-name{color:#000}
 }
 </style>
@@ -177,31 +232,67 @@ body{
   </defs>
 </svg>
 
-<!-- Public stage. Shows nothing but the wheel — it does nothing until the
-     private admin page (admin.html) sends it data via postMessage. Visiting
-     this URL directly with no admin session open just shows this idle
-     state; there is no entrant data, prize data, or control to fetch it. -->
+<!-- ===================== SETUP ===================== -->
+<main class="setup" id="setup">
+  <div class="topbar">
+    <div class="wordmark">
+      <svg width="34" height="39" viewBox="0 0 40 46" aria-hidden="true"><use href="#archIcon"/></svg>
+    </div>
+    <div class="langtoggle" role="group">
+      <button id="btnAr" aria-pressed="true">عربي</button>
+      <button id="btnEn" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="eventName" data-ar="اسم المناسبة" data-en="Event name">اسم المناسبة</label>
+    <input type="text" id="eventName" data-ar-ph="مثال: سحب شُرفات بارك ٢٠٢٦" data-en-ph="e.g. Shorofat Park Draw 2026" placeholder="مثال: سحب شُرفات بارك ٢٠٢٦">
+  </div>
+
+  <div class="field">
+    <div class="blockhead">
+      <label for="entrants" data-ar="قائمة المشاركين" data-en="Entrant list">قائمة المشاركين</label>
+      <span class="count" id="count">0</span>
+    </div>
+    <textarea id="entrants" data-ar-ph="الصق الأسماء، اسم في كل سطر" data-en-ph="Paste names, one per line" placeholder="الصق الأسماء، اسم في كل سطر"></textarea>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" data-ar="اسحب ملف CSV هنا أو اضغط للاختيار" data-en="Drop a CSV file here, or click to choose">
+      <span data-ar="اسحب ملف CSV هنا أو اضغط للاختيار" data-en="Drop a CSV file here, or click to choose">اسحب ملف CSV هنا أو اضغط للاختيار</span>
+      <button type="button" id="pickFile" data-ar="اختيار ملف" data-en="Choose file">اختيار ملف</button>
+      <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none">
+    </div>
+    <div class="opts">
+      <label class="opt"><input type="checkbox" id="dedupe" checked><span data-ar="حذف المكرر" data-en="Remove duplicates">حذف المكرر</span></label>
+    </div>
+  </div>
+
+  <div class="field">
+    <label data-ar="الجوائز" data-en="Prizes">الجوائز</label>
+    <div class="prizes">
+      <div class="prize"><span class="ord">١</span><input type="text" id="prize1" value="الجائزة الأولى"></div>
+      <div class="prize"><span class="ord">٢</span><input type="text" id="prize2" value="الجائزة الثانية"></div>
+    </div>
+  </div>
+
+  <button class="start" id="startDraw" disabled data-ar="ابدأ السحب" data-en="Start draw">ابدأ السحب</button>
+</main>
+
+<!-- ===================== STAGE ===================== -->
 <section class="stage" id="stage" aria-live="polite">
   <div class="stage-head">
-    <div class="ndBadge" id="ndBadge" data-ar="٩٦ · عزّنا بطبعنا" data-en="96 · Our pride lies in our nature">٩٦ · عزّنا بطبعنا</div>
-    <div class="event-name" id="stageEvent">بانتظار الاتصال بشاشة الإدارة…</div>
+    <div class="ndBadge" data-ar="٩٦ · عزّنا بطبعنا" data-en="96 · Our pride lies in our nature">٩٦ · عزّنا بطبعنا</div>
+    <div class="event-name" id="stageEvent"></div>
     <div class="rule"></div>
   </div>
 
   <div class="reveal">
     <div class="prize-label" id="prizeLabel"></div>
 
-    <div class="wheelWrap" id="wheelWrap">
-      <div class="pointer" aria-hidden="true"></div>
-      <div class="wheelRing" aria-hidden="true"></div>
-      <canvas class="wheelCanvas" id="wheelCanvas" aria-hidden="true"></canvas>
-      <div class="wheelHub" aria-hidden="true"></div>
+    <div class="reelViewport" id="reelViewport">
+      <div class="reelFade top" aria-hidden="true"></div>
+      <div class="reelHighlight" aria-hidden="true"></div>
+      <div class="reelStrip" id="reelStrip"></div>
+      <div class="reelFade bottom" aria-hidden="true"></div>
     </div>
-
-    <div class="namebox"><div class="name" id="name">—</div></div>
-    <div class="brassrule" id="brassrule"></div>
-    <svg class="sealmark" id="sealmark" width="46" height="53" viewBox="0 0 40 46" aria-hidden="true"><use href="#archIcon"/></svg>
-    <div class="idline" id="idline"></div>
 
     <div class="results" id="results"></div>
   </div>
@@ -209,10 +300,8 @@ body{
   <div class="stage-foot">
     <div class="controls">
       <button class="ctl primary" id="drawBtn"></button>
-      <button class="ctl" id="fsBtn" data-ar="ملء الشاشة" data-en="Fullscreen">ملء الشاشة</button>
-      <button class="ctl" id="printBtn" data-ar="طباعة المحضر" data-en="Print record">طباعة المحضر</button>
+      <button class="ctl" id="printBtn" style="display:none" data-ar="طباعة" data-en="Print">طباعة</button>
     </div>
-    <div class="record" id="record"></div>
   </div>
 </section>
 
@@ -220,30 +309,25 @@ body{
 (function(){
 "use strict";
 
-/* ---------- state (filled in by initFromAdmin, via postMessage) ---------- */
+/* ---------- state ---------- */
 var lang = "ar";
 var pool = [];
 var allEntries = [];
 var winners = [];
 var prizes = [];
-var fingerprint = "—";
 var drawIndex = 0;
 var busy = false;
-var lockedAt = null;
-var connected = false;
+var drawnAt = null;
 
 var T = {
-  ar:{ drawNow:"أدر العجلة", drawing:"العجلة تدور…", next:"السحب التالي", done:"اكتمل السحب",
-       waiting:"بانتظار الاتصال…",
-       entries:"مشارك", sealLbl:"بصمة القائمة", timeLbl:"وقت إقفال القائمة", noTime:"لم تُقفل بعد",
-       prizeDefault:["الجائزة الأولى","الجائزة الثانية"], ordinal:"الجائزة" },
-  en:{ drawNow:"Spin the wheel", drawing:"Spinning…", next:"Next spin", done:"Draw complete",
-       waiting:"Waiting for connection…",
-       entries:"entries", sealLbl:"List seal", timeLbl:"List locked at", noTime:"not locked yet",
-       prizeDefault:["First prize","Second prize"], ordinal:"Prize" }
+  ar:{ startDraw:"ابدأ السحب", drawing:"جارٍ السحب…", next:"السحب التالي", done:"اكتمل السحب",
+       entries:"مشارك", dupWarn:"مكرر", ordinal:"الجائزة" },
+  en:{ startDraw:"Start draw", drawing:"Drawing…", next:"Next draw", done:"Draw complete",
+       entries:"entries", dupWarn:"duplicates", ordinal:"Prize" }
 };
 
 var $ = function(id){ return document.getElementById(id); };
+var REEL_ROWS = 40;
 
 /* ---------- unbiased random (rejection sampling, no modulo bias) ---------- */
 function randInt(max){
@@ -262,7 +346,7 @@ function shuffle(arr){
 }
 /* pick k random elements from arr without shuffling the whole thing —
    matters once the entrant list runs into the thousands and we only
-   ever need 23-24 of them for the wheel. */
+   ever need a few dozen of them for the reel. */
 function sampleK(arr, k){
   var n = arr.length;
   k = Math.min(k, n);
@@ -274,8 +358,126 @@ function sampleK(arr, k){
   a.length = k;
   return a;
 }
-function groupSeal(h){
-  return (h||"—").slice(0,24).toUpperCase().replace(/(.{4})/g,"$1 ").trim();
+
+/* ---------- delimiter-aware, quote-aware parsing (never naive split(',')) ---------- */
+function detectDelim(raw){
+  var sample = raw.split(/\r?\n/).slice(0,20).join("\n");
+  return sample.indexOf("\t") !== -1 ? "\t" : ",";
+}
+function splitRow(line, delim){
+  var out = [], cur = "", q = false;
+  for(var i=0;i<line.length;i++){
+    var ch = line[i];
+    if(q){
+      if(ch === '"'){ if(line[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === delim){ out.push(cur); cur = ""; }
+      else cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+var HEADER_WORDS = ["name","names","full name","full_name","fullname","entrant","entrants",
+  "اسم","الاسم","الاسم الكامل","اسم المشارك"];
+function looksLikeHeader(cell){
+  var v = String(cell||"").trim().toLowerCase();
+  return HEADER_WORDS.indexOf(v) !== -1;
+}
+/* Reads a dropped/chosen CSV file: quote-aware parse, first column, skip
+   a header row only if it actually looks like one. */
+function parseCsvFile(text){
+  var delim = detectDelim(text);
+  var lines = text.split(/\r?\n/).filter(function(l){ return l.trim() !== ""; });
+  if(!lines.length) return [];
+  var rows = lines.map(function(l){ return splitRow(l, delim); });
+  var start = looksLikeHeader(rows[0][0]) ? 1 : 0;
+  return rows.slice(start).map(function(r){ return (r[0]||"").trim(); }).filter(Boolean);
+}
+
+/* ---------- entrant parsing (paste box): dedupe, count ---------- */
+function parseEntries(){
+  var raw = $("entrants").value;
+  var delim = detectDelim(raw);
+  var lines = raw.split(/\r?\n/), out = [], dupCount = 0;
+  var seen = Object.create(null); // never a plain {} — a name like "constructor"
+                                   // or "__proto__" would collide with the
+                                   // prototype chain and be mishandled
+  for(var i=0;i<lines.length;i++){
+    var line = lines[i].trim();
+    if(!line) continue;
+    var val = splitRow(line, delim)[0].trim();
+    if(!val) continue;
+    var key = val.replace(/\s+/g," ").toLowerCase();
+    if(seen[key]){
+      dupCount++;
+      if($("dedupe").checked) continue;
+    } else { seen[key] = 1; }
+    out.push(val);
+  }
+  return { list: out, dupes: dupCount };
+}
+
+function refresh(){
+  var r = parseEntries();
+  var cEl = $("count");
+  cEl.textContent = r.list.length + " " + T[lang].entries + (r.dupes ? " · " + r.dupes + " " + T[lang].dupWarn : "");
+  cEl.className = "count" + (r.dupes ? " warn" : "");
+  $("startDraw").disabled = r.list.length < 2;
+}
+
+/* ---------- CSV file drop / picker ---------- */
+function ingestFile(file){
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    var names = parseCsvFile(String(reader.result || ""));
+    if(!names.length) return;
+    var existing = $("entrants").value.trim();
+    $("entrants").value = existing ? existing + "\n" + names.join("\n") : names.join("\n");
+    refresh();
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- language ---------- */
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = (l === "ar" ? "rtl" : "ltr");
+  $("btnAr").setAttribute("aria-pressed", String(l==="ar"));
+  $("btnEn").setAttribute("aria-pressed", String(l==="en"));
+  document.title = (l==="ar" ? "السحب الرسمي" : "Official Draw");
+
+  var nodes = document.querySelectorAll("[data-ar]");
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent = nodes[i].getAttribute("data-"+l);
+  var phs = document.querySelectorAll("[data-ar-ph]");
+  for(var j=0;j<phs.length;j++) phs[j].placeholder = phs[j].getAttribute("data-"+l+"-ph");
+
+  refresh();
+}
+
+/* ---------- stage ---------- */
+function updateDrawBtn(){
+  var b = $("drawBtn");
+  if(busy){ b.textContent = T[lang].drawing; b.disabled = true; return; }
+  if(drawIndex >= prizes.length){ b.textContent = T[lang].done; b.disabled = true; return; }
+  b.disabled = false;
+  b.textContent = (drawIndex === 0 ? T[lang].startDraw : T[lang].next);
+}
+
+function renderResults(){
+  var box = $("results");
+  if(drawIndex < prizes.length || !winners.length){ box.classList.remove("on"); box.innerHTML=""; $("printBtn").style.display="none"; return; }
+  var t = drawnAt ? drawnAt.toLocaleString(lang==="ar" ? "ar-SA" : "en-GB", {dateStyle:"medium", timeStyle:"short"}) : "";
+  box.innerHTML = winners.map(function(w){
+    return '<div class="res-row"><span class="res-prize">' + esc(w.prize) +
+           '</span><span class="res-name">' + esc(w.name) + '</span></div>';
+  }).join("") + '<div class="res-meta">' + allEntries.length + " " + T[lang].entries + " · " + t + '</div>';
+  box.classList.add("on");
+  $("printBtn").style.display = "";
 }
 function esc(s){
   return String(s).replace(/[&<>"]/g, function(c){
@@ -283,346 +485,178 @@ function esc(s){
   });
 }
 
-/* ---------- stage rendering ---------- */
-function updateDrawBtn(){
-  var b = $("drawBtn");
-  if(!connected){ b.textContent = T[lang].waiting; b.disabled = true; return; }
-  if(busy){ b.textContent = T[lang].drawing; b.disabled = true; return; }
-  if(drawIndex >= prizes.length){ b.textContent = T[lang].done; b.disabled = true; return; }
-  b.disabled = false;
-  b.textContent = (drawIndex === 0 ? T[lang].drawNow : T[lang].next);
+function openStage(){
+  var r = parseEntries();
+  allEntries = r.list.slice();
+  pool = r.list.slice();
+  prizes = [$("prize1").value.trim() || T[lang].ordinal + " 1", $("prize2").value.trim() || T[lang].ordinal + " 2"];
+  winners = [];
+  drawIndex = 0;
+  drawnAt = null;
+
+  $("stageEvent").textContent = $("eventName").value.trim() ||
+    (lang==="ar" ? "السحب الرسمي" : "Official Draw");
+  $("prizeLabel").classList.remove("show");
+  $("results").classList.remove("on");
+  $("printBtn").style.display = "none";
+  $("reelStrip").innerHTML = "";
+  $("reelStrip").style.transition = "none";
+  $("reelStrip").style.transform = "translateY(0px)";
+  $("setup").style.display = "none";
+  $("stage").classList.add("on");
+  updateDrawBtn();
+
+  if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){});
 }
 
-function renderRecord(){
-  if(!connected){ $("record").innerHTML = ""; return; }
-  var t = lockedAt
-    ? lockedAt.toLocaleString(lang==="ar" ? "ar-SA" : "en-GB", {dateStyle:"medium", timeStyle:"short"})
-    : T[lang].noTime;
-  $("record").innerHTML =
-    '<span>' + allEntries.length + " " + T[lang].entries + '</span>' +
-    '<span>' + T[lang].sealLbl + ' <span class="mono">' + groupSeal(fingerprint) + '</span></span>' +
-    '<span>' + T[lang].timeLbl + ': ' + t + '</span>';
+function closeStage(){
+  $("stage").classList.remove("on");
+  $("setup").style.display = "";
+  if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
 }
 
-function renderResults(){
-  var box = $("results");
-  if(!winners.length){ box.classList.remove("on"); box.innerHTML = ""; return; }
-  if(drawIndex < prizes.length){ box.classList.remove("on"); return; }
-  box.innerHTML = winners.map(function(w){
-    return '<div class="res-row"><span class="res-prize">' + esc(w.prize) +
-           '</span><span class="res-name">' + esc(w.name) + '</span></div>';
-  }).join("");
-  box.classList.add("on");
-}
-
-/* ============ WHEEL ============ */
+/* ============ NAME REEL ============ */
 /* Winner is chosen by crypto.getRandomValues over the FULL pool before any
-   animation runs. The wheel is a presentation device: it never decides the
-   winner, it only displays one. If the pool is larger than 24, we sample a
-   24-name display set that always includes the true winner. */
-var wheel = (function(){
-  var canvas = $("wheelCanvas"), ctx = null;
-  var segments = ["—"];
-  var highlightIndex = -1;
-  var rotation = 0;
-  var curLang = "ar";
-  var raf = null;
-  var size = 0;
-
-  function resize(){
-    var rect = canvas.getBoundingClientRect();
-    if(rect.width < 2 || rect.height < 2) return;
-    // Guard against a non-square box (e.g. a squashed flex container):
-    // always draw into a square buffer so the circle can never clip.
-    var dpr = window.devicePixelRatio || 1;
-    size = Math.min(rect.width, rect.height);
-    canvas.width = Math.round(size * dpr);
-    canvas.height = Math.round(size * dpr);
-    ctx = canvas.getContext("2d");
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-
-  function truncateToWidth(text, maxWidth){
-    if(ctx.measureText(text).width <= maxWidth) return text;
-    var lo = 0, hi = text.length;
-    while(lo < hi){
-      var mid = (lo+hi+1) >> 1;
-      var t = text.slice(0,mid) + "…";
-      if(ctx.measureText(t).width <= maxWidth) lo = mid; else hi = mid-1;
-    }
-    return lo>0 ? text.slice(0,lo) + "…" : "…";
-  }
-
-  function setSegments(list, hi){
-    segments = list.length ? list : ["—"];
-    highlightIndex = hi;
-  }
-  function setLang(l){ curLang = l; }
-
-  function redraw(){
-    if(!ctx) resize();
-    if(!ctx || size<2) return;
-    var cx = size/2, cy = size/2;
-    var outerR = size/2 - 2;
-    var innerR = outerR * 0.20;
-    ctx.clearRect(0,0,size,size);
-    ctx.save();
-    ctx.translate(cx,cy);
-    ctx.rotate(rotation);
-
-    var n = segments.length;
-    var seg = (Math.PI*2)/n;
-    var colorA = "#124F3D", colorB = "#0B3D2E";
-    for(var i=0;i<n;i++){
-      var a0 = -Math.PI/2 + i*seg, a1 = a0+seg;
-      ctx.beginPath();
-      ctx.moveTo(0,0);
-      ctx.arc(0,0,outerR,a0,a1);
-      ctx.closePath();
-      if(i === highlightIndex){
-        ctx.fillStyle = "#8A6B33";
-      } else {
-        ctx.fillStyle = (i%2===0) ? colorA : colorB;
-      }
-      ctx.fill();
-    }
-    if(highlightIndex>=0){
-      var ha0 = -Math.PI/2 + highlightIndex*seg, ha1 = ha0+seg;
-      ctx.save();
-      ctx.shadowColor = "rgba(228,205,148,.85)";
-      ctx.shadowBlur = Math.max(10, outerR*0.05);
-      ctx.beginPath();
-      ctx.moveTo(0,0); ctx.arc(0,0,outerR,ha0,ha1); ctx.closePath();
-      ctx.fillStyle = "rgba(228,205,148,.18)";
-      ctx.fill();
-      ctx.restore();
-    }
-    ctx.strokeStyle = "#C3A966";
-    ctx.lineWidth = Math.max(1, outerR*0.006);
-    for(i=0;i<n;i++){
-      var ang = -Math.PI/2 + i*seg;
-      ctx.beginPath();
-      ctx.moveTo(0,0);
-      ctx.lineTo(outerR*Math.cos(ang), outerR*Math.sin(ang));
-      ctx.stroke();
-    }
-
-    var fontSize = Math.max(10, Math.min(15, outerR*0.078));
-    ctx.direction = (curLang === "ar") ? "rtl" : "ltr";
-    ctx.textBaseline = "middle";
-    ctx.textAlign = "right";
-    ctx.font = "500 " + fontSize + 'px "Noto Naskh Arabic","Tajawal",system-ui,sans-serif';
-    var pad = Math.max(6, outerR*0.045);
-    var maxW = outerR - innerR - pad*2;
-    for(i=0;i<n;i++){
-      var ac = -Math.PI/2 + i*seg + seg/2;
-      ctx.save();
-      ctx.rotate(ac);
-      var label = truncateToWidth(String(segments[i]), maxW);
-      ctx.fillStyle = (i===highlightIndex) ? "#FFFCF4" : "#F3EEE1";
-      ctx.fillText(label, outerR - pad, 0);
-      ctx.restore();
-    }
-    ctx.restore();
-  }
-
-  function mod(a,n){ return ((a % n) + n) % n; }
-
-  function spinTo(winnerSegIndex, duration, onDone){
-    var n = segments.length;
-    var seg = (Math.PI*2)/n;
-    var segCenter = -Math.PI/2 + winnerSegIndex*seg + seg/2;
-    var offset = (randInt(1000)/1000 - 0.5) * seg * 0.7;
-    var targetMod = mod(-Math.PI/2 + offset - segCenter, Math.PI*2);
-    var currentMod = mod(rotation, Math.PI*2);
-    var deltaFwd = mod(targetMod - currentMod, Math.PI*2);
-    var extraTurns = 4 + randInt(3); // 4..6 full extra rotations
-    var fromRot = rotation;
-    var toRot = rotation + deltaFwd + extraTurns*Math.PI*2;
-
-    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if(raf) cancelAnimationFrame(raf);
-    if(reduce){
-      rotation = toRot;
-      redraw();
-      onDone();
-      return;
-    }
-    var t0 = null;
-    function step(ts){
-      if(t0===null) t0 = ts;
-      var t = Math.min((ts-t0)/duration, 1);
-      var eased = 1 - Math.pow(1-t, 5);
-      rotation = fromRot + (toRot-fromRot)*eased;
-      redraw();
-      if(t < 1){ raf = requestAnimationFrame(step); }
-      else { rotation = toRot; redraw(); onDone(); }
-    }
-    raf = requestAnimationFrame(step);
-  }
-
-  window.addEventListener("resize", function(){ resize(); redraw(); });
-  // The wheel's box can also change from layout shifts that aren't a window
-  // resize — e.g. the results list appearing after the second draw pushes
-  // the flex column and reflows wheelWrap. Watch the box itself so the
-  // canvas bitmap never lags behind (and briefly renders stretched).
-  if(window.ResizeObserver){
-    new ResizeObserver(function(){ resize(); redraw(); }).observe(canvas.parentElement);
-  }
-
-  return { resize:resize, redraw:redraw, setSegments:setSegments, setLang:setLang, spinTo:spinTo };
-})();
-
-/* build a display set of at most 24 names that always includes the real winner */
-function buildDisplaySet(poolArr, winnerIdx){
+   animation runs. The reel is a presentation device: it never decides the
+   winner, it only displays one — the last row in the strip is always the
+   real winner, everything scrolling past it is decoration. */
+function buildReelRows(poolArr, winnerIdx, totalRows){
   var winnerName = poolArr[winnerIdx];
-  if(poolArr.length <= 24){
-    var items = poolArr.map(function(v,i){ return {name:v, isWinner:i===winnerIdx}; });
-    shuffle(items);
-    return items;
+  var others = [];
+  for(var i=0;i<poolArr.length;i++) if(i!==winnerIdx) others.push(poolArr[i]);
+  var need = totalRows - 1;
+  var decoys = [];
+  if(others.length === 0){
+    for(var k=0;k<need;k++) decoys.push(winnerName);
+  } else if(others.length >= need){
+    decoys = sampleK(others, need);
+  } else {
+    while(decoys.length < need){
+      decoys = decoys.concat(shuffle(others.slice()));
+    }
+    decoys.length = need;
   }
-  var otherIdx = [];
-  for(var i=0;i<poolArr.length;i++) if(i!==winnerIdx) otherIdx.push(i);
-  var chosen = sampleK(otherIdx, 23).map(function(i){ return {name:poolArr[i], isWinner:false}; });
-  chosen.push({name:winnerName, isWinner:true});
-  shuffle(chosen);
-  return chosen;
+  decoys.push(winnerName); // last row is always the real winner
+  return decoys;
+}
+
+function renderReelRows(names){
+  var strip = $("reelStrip");
+  strip.innerHTML = names.map(function(name, i){
+    return '<div class="reelRow' + (i === names.length-1 ? ' winnerRow' : '') + '">' + esc(name) + '</div>';
+  }).join("");
+  var rows = strip.querySelectorAll(".reelRow");
+  for(var i=0;i<rows.length;i++){
+    if(rows[i].scrollWidth > rows[i].clientWidth) rows[i].classList.add("long");
+  }
+}
+
+function spinReel(rowCount, duration, onDone){
+  var strip = $("reelStrip");
+  var rowEl = strip.querySelector(".reelRow");
+  var rowH = rowEl.getBoundingClientRect().height;
+  var viewportH = $("reelViewport").getBoundingClientRect().height;
+  var finalY = viewportH/2 - rowH/2 - (rowCount-1)*rowH;
+
+  strip.style.transition = "none";
+  strip.style.transform = "translateY(0px)";
+  void strip.offsetHeight; // force reflow so the reset above actually commits
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce){
+    strip.style.transform = "translateY(" + finalY + "px)";
+    onDone();
+    return;
+  }
+
+  strip.style.transition = "transform " + (duration/1000) + "s cubic-bezier(.15,.8,.2,1)";
+  requestAnimationFrame(function(){
+    strip.style.transform = "translateY(" + finalY + "px)";
+  });
+
+  function onEnd(e){
+    if(e.target !== strip || e.propertyName !== "transform") return;
+    strip.removeEventListener("transitionend", onEnd);
+    onDone();
+  }
+  strip.addEventListener("transitionend", onEnd);
 }
 
 /* ---------- the draw ---------- */
 function runDraw(){
-  if(!connected || busy || drawIndex >= prizes.length || pool.length === 0) return;
+  if(busy || drawIndex >= prizes.length || pool.length === 0) return;
   busy = true;
   updateDrawBtn();
 
-  // Winner chosen NOW, before any animation. The wheel only presents this result.
+  // Winner chosen NOW, before any animation. The reel only presents this result.
   var pick = randInt(pool.length);
   var winnerName = pool[pick];
   var prizeName = prizes[drawIndex] || (T[lang].ordinal + " " + (drawIndex+1));
 
-  var displaySet = buildDisplaySet(pool, pick);
-  var winnerSegIndex = displaySet.findIndex(function(d){ return d.isWinner; });
-  wheel.setSegments(displaySet.map(function(d){ return d.name; }), -1);
-  wheel.setLang(lang);
-  wheel.resize();
+  var rowNames = buildReelRows(pool, pick, REEL_ROWS);
+  renderReelRows(rowNames);
 
-  var nameEl = $("name"), rule = $("brassrule"), seal = $("sealmark"), idl = $("idline");
   var pl = $("prizeLabel");
-
   pl.textContent = prizeName;
   pl.classList.add("show");
-  rule.classList.remove("draw");
-  seal.classList.remove("show");
-  idl.classList.remove("show");
   $("results").classList.remove("on");
-  nameEl.textContent = "—";
-  nameEl.className = "name";
 
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var DUR = reduce ? 1 : 6000;
+  var DUR = reduce ? 1 : 5000;
 
-  wheel.spinTo(winnerSegIndex, DUR, function(){
-    wheel.setSegments(displaySet.map(function(d){ return d.name; }), winnerSegIndex);
-    wheel.redraw();
+  spinReel(rowNames.length, DUR, function(){
+    var winnerRow = $("reelStrip").querySelector(".winnerRow");
+    if(winnerRow) winnerRow.classList.add("settled");
 
     pool.splice(pick,1);
     winners.push({prize:prizeName, name:winnerName});
     drawIndex++;
-
-    nameEl.textContent = winnerName;
-    nameEl.className = "name locked";
-    rule.classList.add("draw");
-    seal.classList.add("show");
-    idl.textContent = (lang==="ar"
-      ? "السحب " + drawIndex + " من " + prizes.length + " · من بين " + allEntries.length + " مشارك"
-      : "Draw " + drawIndex + " of " + prizes.length + " · from " + allEntries.length + " entries");
-    idl.classList.add("show");
+    if(!drawnAt) drawnAt = new Date();
 
     busy = false;
     updateDrawBtn();
-    renderRecord();
     renderResults();
   });
 }
 
-/* ---------- receiving data from the private admin page ---------- */
-function applyLangStrings(){
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-  document.title = lang === "ar" ? "السحب الرسمي" : "Official Draw";
-  var nodes = document.querySelectorAll("[data-ar]");
-  for(var i=0;i<nodes.length;i++) nodes[i].textContent = nodes[i].getAttribute("data-" + lang);
-}
-
-function initFromAdmin(d){
-  lang = (d.lang === "en") ? "en" : "ar";
-  applyLangStrings();
-
-  prizes = (d.prizes && d.prizes.length) ? d.prizes.slice() : T.ar.prizeDefault.slice();
-  allEntries = (d.entries || []).slice();
-  pool = allEntries.slice();
-  fingerprint = d.seal || "—";
-  lockedAt = d.lockedAt ? new Date(d.lockedAt) : new Date();
-  winners = [];
-  drawIndex = 0;
-  connected = true;
-
-  $("stageEvent").textContent = d.eventName || (lang === "ar" ? "السحب الرسمي" : "Official Draw");
-  $("name").textContent = "—";
-  $("name").className = "name";
-  $("prizeLabel").classList.remove("show");
-  $("brassrule").classList.remove("draw");
-  $("sealmark").classList.remove("show");
-  $("idline").classList.remove("show");
-  $("results").classList.remove("on");
-
-  updateDrawBtn();
-  renderRecord();
-  wheel.setLang(lang);
-  wheel.setSegments(sampleK(pool, 24), -1);
-  wheel.resize();
-  wheel.redraw();
-}
-
-window.addEventListener("message", function(e){
-  if(e.origin !== location.origin) return;
-  var d = e.data;
-  if(!d || d.type !== "shorofat-draw-init") return;
-  if(e.source) e.source.postMessage({type:"shorofat-draw-ack"}, location.origin);
-  initFromAdmin(d);
+/* ---------- CSV drop zone wiring ---------- */
+var dz = $("dropzone");
+dz.addEventListener("click", function(){ $("fileInput").click(); });
+dz.addEventListener("keydown", function(e){ if(e.key==="Enter" || e.key===" "){ e.preventDefault(); $("fileInput").click(); } });
+dz.addEventListener("dragover", function(e){ e.preventDefault(); dz.classList.add("drag"); });
+dz.addEventListener("dragleave", function(){ dz.classList.remove("drag"); });
+dz.addEventListener("drop", function(e){
+  e.preventDefault(); dz.classList.remove("drag");
+  if(e.dataTransfer.files && e.dataTransfer.files[0]) ingestFile(e.dataTransfer.files[0]);
+});
+$("pickFile").addEventListener("click", function(e){ e.stopPropagation(); $("fileInput").click(); });
+$("fileInput").addEventListener("change", function(){
+  if(this.files && this.files[0]) ingestFile(this.files[0]);
+  this.value = "";
 });
 
-/* ---------- controls ---------- */
+/* ---------- wiring ---------- */
+$("entrants").addEventListener("input", refresh);
+$("dedupe").addEventListener("change", refresh);
+$("startDraw").addEventListener("click", openStage);
 $("drawBtn").addEventListener("click", runDraw);
 $("printBtn").addEventListener("click", function(){ window.print(); });
-$("fsBtn").addEventListener("click", function(){
-  if(!document.fullscreenElement){
-    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-  } else if(document.exitFullscreen){ document.exitFullscreen(); }
-});
+$("btnAr").addEventListener("click", function(){ setLang("ar"); });
+$("btnEn").addEventListener("click", function(){ setLang("en"); });
 
 document.addEventListener("keydown", function(e){
+  if(!$("stage").classList.contains("on")) return;
   if(e.code === "Space" || e.code === "Enter"){
     if(document.activeElement && document.activeElement.tagName === "BUTTON") return;
     e.preventDefault(); runDraw();
   }
-  if(e.key === "Escape" && document.fullscreenElement){ document.exitFullscreen(); }
 });
 
 document.addEventListener("fullscreenchange", function(){
-  setTimeout(function(){ wheel.resize(); wheel.redraw(); }, 60);
+  if(!document.fullscreenElement && $("stage").classList.contains("on")) closeStage();
 });
 
-wheel.setSegments(["—"], -1);
-updateDrawBtn();
-
-// Announce ourselves to whoever opened us (the private admin page), so it
-// can reply with the entrant list/prizes/seal. If this page was opened
-// directly (bookmarked, shared link, no admin session) window.opener is
-// null and we just stay in this idle "waiting" state forever — safe.
-if(window.opener){
-  try{ window.opener.postMessage({type:"shorofat-draw-ready"}, location.origin); }catch(e){}
-}
+refresh();
 })();
 </script>
 </body>
