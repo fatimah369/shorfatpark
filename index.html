@@ -74,7 +74,29 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 }
 ::placeholder{color:var(--muted)}
 
-.dropzone{
+.srctabs{display:flex;gap:2px;margin-bottom:12px;border:1px solid var(--line);border-radius:2px;width:fit-content;overflow:hidden}
+.srctabs button{background:none;border:0;color:var(--muted);font-family:var(--ui);font-size:12.5px;padding:7px 16px;cursor:pointer;font-weight:400}
+.srctabs button[aria-pressed="true"]{background:var(--surface);color:var(--text)}
+.sheetbox{display:none;margin-bottom:14px}
+.sheetbox.on{display:block}
+.sheetrow{display:flex;gap:8px}
+.sheetrow input{flex:1;font-size:13px;direction:ltr;text-align:left}
+.sheetrow button{
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-family:var(--ui);font-size:13px;padding:0 20px;border-radius:2px;cursor:pointer;flex:none;
+}
+.sheetrow button:hover{border-color:var(--brass-dim)}
+.synced{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);margin-top:11px;min-height:20px;flex-wrap:wrap}
+.dot{width:6px;height:6px;border-radius:50%;background:#D3C7AA;flex:none}
+.dot.live{background:#7FB08A;animation:pulse 2s infinite}
+.dot.err{background:#C87B5A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.helpsteps{font-size:12px;color:var(--muted);line-height:1.85;margin-top:12px;display:none;max-width:62ch}
+.helpsteps.on{display:block}
+.errmsg{font-size:12.5px;color:#C87B5A;line-height:1.7;margin-top:8px;display:none;max-width:62ch}
+.errmsg.on{display:block}
+.dropzone{display:none}
+.dropzone.on{
   border:1px dashed var(--line);border-radius:2px;padding:16px;margin-top:10px;
   display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
   font-size:13px;color:var(--muted);cursor:pointer;
@@ -254,7 +276,30 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
       <label for="entrants" data-ar="قائمة المشاركين" data-en="Entrant list">قائمة المشاركين</label>
       <span class="count" id="count">0</span>
     </div>
-    <textarea id="entrants" data-ar-ph="الصق الأسماء، اسم في كل سطر" data-en-ph="Paste names, one per line" placeholder="الصق الأسماء، اسم في كل سطر"></textarea>
+
+    <div class="srctabs" role="group">
+      <button id="tabSheet" aria-pressed="true" data-ar="ربط Google Sheet" data-en="Link Google Sheet">ربط Google Sheet</button>
+      <button id="tabPaste" aria-pressed="false" data-ar="لصق يدوي" data-en="Paste">لصق يدوي</button>
+    </div>
+
+    <div class="sheetbox on" id="sheetbox">
+      <div class="sheetrow">
+        <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQPVi__O3qNUkf4W_q43D6yaogCg0Q6j-WOf1kjfSR1OSzKlFkp6-pgjWR2dKZiJ8xqcQ3hx4X5cTXv/pub?gid=0&single=true&output=csv" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv">
+        <button id="connectBtn" data-ar="اتصال" data-en="Connect">اتصال</button>
+      </div>
+      <div class="synced">
+        <span class="dot" id="syncDot"></span>
+        <span id="syncMsg"></span>
+      </div>
+      <div class="errmsg" id="errmsg"></div>
+      <label class="opt" style="margin-top:8px">
+        <input type="checkbox" id="hasHeader" checked>
+        <span data-ar="السطر الأول عناوين أعمدة" data-en="First row is column headers">السطر الأول عناوين أعمدة</span>
+      </label>
+      <div class="helpsteps" id="helpsteps"></div>
+    </div>
+
+    <textarea id="entrants" data-ar-ph="الصق الأسماء، اسم في كل سطر" data-en-ph="Paste names, one per line" placeholder="الصق الأسماء، اسم في كل سطر" readonly></textarea>
     <div class="dropzone" id="dropzone" tabindex="0" role="button" data-ar="اسحب ملف CSV هنا أو اضغط للاختيار" data-en="Drop a CSV file here, or click to choose">
       <span data-ar="اسحب ملف CSV هنا أو اضغط للاختيار" data-en="Drop a CSV file here, or click to choose">اسحب ملف CSV هنا أو اضغط للاختيار</span>
       <button type="button" id="pickFile" data-ar="اختيار ملف" data-en="Choose file">اختيار ملف</button>
@@ -321,9 +366,23 @@ var drawnAt = null;
 
 var T = {
   ar:{ startDraw:"ابدأ السحب", drawing:"جارٍ السحب…", next:"السحب التالي", done:"اكتمل السحب",
-       entries:"مشارك", dupWarn:"مكرر", ordinal:"الجائزة" },
+       entries:"مشارك", dupWarn:"مكرر", ordinal:"الجائزة",
+       syncIdle:"غير متصل", syncing:"جارٍ الاتصال…",
+       syncLive:"متصل — يتحدّث تلقائياً كل ١٠ ثوانٍ · آخر تحديث ",
+       syncNames:" اسم",
+       help:"في Google Sheet: أنشئ تبويباً جديداً يحتوي فقط على عمود الأسماء (مثلاً بمعادلة =QUERY) ثم: ملف ← مشاركة ← نشر على الويب ← اختر ذلك التبويب فقط ← الصيغة: قيم مفصولة بفواصل (.csv) ← نشر. لا تنشر التبويب الذي يحتوي على أرقام الهواتف. انسخ رابط النشر والصقه هنا.",
+       errNetwork:"تعذّر الوصول إلى الرابط. الأسباب المحتملة: انقطع الاتصال بالإنترنت، أو أن الشيت لم يُنشر على الويب بعد (يمنع المتصفح القراءة من رابط غير منشور - CORS). راجع خطوات النشر أدناه.",
+       errHtml:"هذا رابط صفحة الشيت العادية، وليس رابط النشر بصيغة CSV. اذهب إلى ملف ← مشاركة ← نشر على الويب واستخدم الرابط الذي ينتهي بـ output=csv.",
+       errHttp:"الرابط أعاد خطأ (قد يكون محذوفاً أو غير مكتمل). انسخه مجدداً من نافذة النشر." },
   en:{ startDraw:"Start draw", drawing:"Drawing…", next:"Next draw", done:"Draw complete",
-       entries:"entries", dupWarn:"duplicates", ordinal:"Prize" }
+       entries:"entries", dupWarn:"duplicates", ordinal:"Prize",
+       syncIdle:"Not connected", syncing:"Connecting…",
+       syncLive:"Live — refreshing every 10s · last update ",
+       syncNames:" names",
+       help:"In Google Sheets: create a new tab containing only the display column (e.g. with =QUERY), then File → Share → Publish to web → select that tab only → format: Comma-separated values (.csv) → Publish. Never publish the tab holding phone numbers. Copy that link and paste it here.",
+       errNetwork:"Could not reach that link. Likely causes: the internet connection dropped, or the sheet hasn't been published to the web yet (the browser blocks reads from an unpublished link — CORS). Check the publish steps below.",
+       errHtml:"That's the normal sheet link, not a published CSV link. Go to File → Share → Publish to web and use the link that ends in output=csv.",
+       errHttp:"That link returned an error (it may be deleted or incomplete). Copy it again from the publish dialog." }
 };
 
 var $ = function(id){ return document.getElementById(id); };
@@ -396,6 +455,91 @@ function parseCsvFile(text){
   var start = looksLikeHeader(rows[0][0]) ? 1 : 0;
   return rows.slice(start).map(function(r){ return (r[0]||"").trim(); }).filter(Boolean);
 }
+/* Full CSV parser for a fetched published-sheet CSV (quote-aware, handles
+   embedded newlines inside quoted cells — splitRow alone isn't enough
+   since it works one already-split line at a time). */
+function parseSheetCSV(text){
+  var rows = [], row = [], cur = "", q = false;
+  for(var i=0;i<text.length;i++){
+    var ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === ","){ row.push(cur); cur = ""; }
+      else if(ch === "\n"){ row.push(cur); rows.push(row); row = []; cur = ""; }
+      else if(ch !== "\r") cur += ch;
+    }
+  }
+  row.push(cur); rows.push(row);
+  return rows.filter(function(r){ return r.some(function(c){ return c.trim() !== ""; }); });
+}
+
+/* ---------- Google Sheet live sync ---------- */
+var pollTimer = null, srcMode = "sheet";
+
+function setSync(state, msg){
+  $("syncDot").className = "dot" + (state ? " " + state : "");
+  $("syncMsg").textContent = msg;
+}
+function setErr(msg){
+  var el = $("errmsg");
+  if(msg){ el.textContent = msg; el.classList.add("on"); }
+  else { el.textContent = ""; el.classList.remove("on"); }
+}
+function timeStr(d){
+  return d.toLocaleTimeString(lang==="ar" ? "ar-SA" : "en-GB", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+}
+
+function pullSheet(silent){
+  var url = $("sheetUrl").value.trim();
+  if(!url) return;
+  if(!silent){ setSync("", T[lang].syncing); setErr(null); }
+  fetch(url, {cache:"no-store"})
+    .then(function(r){
+      if(!r.ok){ var e = new Error("http"); e.kind = "http"; throw e; }
+      return r.text();
+    })
+    .then(function(txt){
+      if(/^\s*</.test(txt)){ var e = new Error("html"); e.kind = "html"; throw e; }
+      var rows = parseSheetCSV(txt);
+      if($("hasHeader").checked && rows.length) rows = rows.slice(1);
+      $("entrants").value = rows.map(function(r){ return (r[0]||"").trim(); }).filter(Boolean).join("\n");
+      refresh();
+      setSync("live", T[lang].syncLive + timeStr(new Date()) + " · " + parseEntries().list.length + T[lang].syncNames);
+      setErr(null);
+      $("helpsteps").classList.remove("on");
+    })
+    .catch(function(err){
+      var kind = (err && err.kind) || "network";
+      var msg = kind==="html" ? T[lang].errHtml : kind==="http" ? T[lang].errHttp : T[lang].errNetwork;
+      setSync("err", lang==="ar" ? "تعذّر التحديث" : "Update failed");
+      setErr(msg);
+      $("helpsteps").classList.add("on");
+    });
+}
+function connectSheet(){
+  if(pollTimer) clearInterval(pollTimer);
+  pullSheet(false);
+  pollTimer = setInterval(function(){ pullSheet(true); }, 10000);
+}
+function setSource(mode){
+  srcMode = mode;
+  $("tabSheet").setAttribute("aria-pressed", String(mode === "sheet"));
+  $("tabPaste").setAttribute("aria-pressed", String(mode === "paste"));
+  $("sheetbox").classList.toggle("on", mode === "sheet");
+  $("dropzone").classList.toggle("on", mode === "paste");
+  if(mode === "sheet"){
+    $("entrants").readOnly = true;
+    connectSheet();
+  } else {
+    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+    $("entrants").readOnly = false;
+    setSync("", T[lang].syncIdle);
+    setErr(null);
+  }
+}
 
 /* ---------- entrant parsing (paste box): dedupe, count ---------- */
 function parseEntries(){
@@ -455,6 +599,7 @@ function setLang(l){
   for(var i=0;i<nodes.length;i++) nodes[i].textContent = nodes[i].getAttribute("data-"+l);
   var phs = document.querySelectorAll("[data-ar-ph]");
   for(var j=0;j<phs.length;j++) phs[j].placeholder = phs[j].getAttribute("data-"+l+"-ph");
+  $("helpsteps").textContent = T[lang].help;
 
   refresh();
 }
@@ -486,6 +631,7 @@ function esc(s){
 }
 
 function openStage(){
+  if(pollTimer){ clearInterval(pollTimer); pollTimer = null; } // list is committed now; stop pulling fresh rows mid-event
   var r = parseEntries();
   allEntries = r.list.slice();
   pool = r.list.slice();
@@ -638,6 +784,11 @@ $("fileInput").addEventListener("change", function(){
 /* ---------- wiring ---------- */
 $("entrants").addEventListener("input", refresh);
 $("dedupe").addEventListener("change", refresh);
+$("tabSheet").addEventListener("click", function(){ setSource("sheet"); });
+$("tabPaste").addEventListener("click", function(){ setSource("paste"); });
+$("connectBtn").addEventListener("click", connectSheet);
+$("sheetUrl").addEventListener("keydown", function(e){ if(e.key === "Enter") connectSheet(); });
+$("hasHeader").addEventListener("change", function(){ if(srcMode === "sheet") pullSheet(false); });
 $("startDraw").addEventListener("click", openStage);
 $("drawBtn").addEventListener("click", runDraw);
 $("printBtn").addEventListener("click", function(){ window.print(); });
@@ -656,7 +807,9 @@ document.addEventListener("fullscreenchange", function(){
   if(!document.fullscreenElement && $("stage").classList.contains("on")) closeStage();
 });
 
+$("helpsteps").textContent = T[lang].help;
 refresh();
+connectSheet(); // Sheet tab is the default source — connect immediately, no click needed
 })();
 </script>
 </body>
