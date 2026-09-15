@@ -35,13 +35,8 @@ body{
 /* Stage runs Saudi National Day 96 ("عزّنا بطبعنا") green-and-gold; the
    gold accent and arch mark carry over from the setup screen so both
    feel like one system. */
-.stage{
-  --bg:#0B3D2E;
-  --surface:#124F3D;
-  --line:#1C5C46;
-  --text:#F3EEE1;
-  --muted:#BFCBA8;
-}
+/* Stage intentionally carries the same tokens as setup — one Shorofat
+   Park identity throughout, not a separate palette. */
 
 /* ============ SETUP ============ */
 .setup{max-width:680px;margin:0 auto;padding:48px 28px 96px}
@@ -134,10 +129,6 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 .stage.on{display:flex}
 
 .stage-head{width:100%;max-width:900px;flex:none}
-.ndBadge{
-  display:inline-block;font-size:11.5px;letter-spacing:.03em;color:var(--brass);
-  border:1px solid var(--brass-dim);border-radius:20px;padding:4px 14px;margin-bottom:10px;
-}
 .event-name{font-family:var(--formal);font-size:clamp(16px,2.2vw,24px);color:var(--text);line-height:1.5}
 .stage-head .rule{height:1px;background:var(--line);margin:14px auto 0;max-width:220px}
 
@@ -176,9 +167,13 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
   transition:transform .5s cubic-bezier(.2,.7,.3,1), color .5s ease, text-shadow .5s ease;
 }
 .reelRow.winnerRow.settled{
+  /* The glow that worked on a dark stage (near-white text) reads as
+     nearly invisible on this cream background — keep the text in the
+     same navy as everything else and let the gold halo carry the
+     "reveal" moment instead. */
   transform:scale(1.06);
-  color:#FFFCF4;
-  text-shadow:0 0 26px rgba(228,205,148,.85), 0 0 52px rgba(195,169,102,.55);
+  color:var(--on-gold);
+  text-shadow:0 0 22px rgba(195,169,102,.65), 0 0 46px rgba(195,169,102,.35);
 }
 .reelHighlight{
   position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
@@ -224,7 +219,7 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 
 @media print{
   body{background:#fff;color:#000}
-  .setup,.controls,.stage-head .rule,.reelViewport,.prize-label,.ndBadge{display:none}
+  .setup,.controls,.stage-head .rule,.reelViewport,.prize-label{display:none}
   .stage{position:static;display:block;padding:0;height:auto}
   .reveal{min-height:0}
   .res-name{color:#000 !important}
@@ -324,7 +319,6 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 <!-- ===================== STAGE ===================== -->
 <section class="stage" id="stage" aria-live="polite">
   <div class="stage-head">
-    <div class="ndBadge" data-ar="٩٦ · عزّنا بطبعنا" data-en="96 · Our pride lies in our nature">٩٦ · عزّنا بطبعنا</div>
     <div class="event-name" id="stageEvent"></div>
     <div class="rule"></div>
   </div>
@@ -668,17 +662,27 @@ function closeStage(){
    real winner, everything scrolling past it is decoration. */
 function buildReelRows(poolArr, winnerIdx, totalRows){
   var winnerName = poolArr[winnerIdx];
-  var others = [];
-  for(var i=0;i<poolArr.length;i++) if(i!==winnerIdx) others.push(poolArr[i]);
   var need = totalRows - 1;
+  // Excluding the winner from the fill source is fine with a real crowd,
+  // but with only 2-3 entrants it leaves just one other name — cycling
+  // that alone produces the same name dozens of times in a row, which
+  // reads as broken/duplicated rather than as a reel. Below that size,
+  // fill from the whole pool (winner included) instead: it's still
+  // decoration, the winner was already chosen before this ever renders.
+  var fillSource = poolArr.length > 3
+    ? poolArr.filter(function(_, i){ return i !== winnerIdx; })
+    : poolArr.slice();
   var decoys = [];
-  if(others.length === 0){
-    for(var k=0;k<need;k++) decoys.push(winnerName);
-  } else if(others.length >= need){
-    decoys = sampleK(others, need);
+  if(fillSource.length >= need){
+    decoys = sampleK(fillSource, need);
   } else {
     while(decoys.length < need){
-      decoys = decoys.concat(shuffle(others.slice()));
+      var lap = shuffle(fillSource.slice());
+      // avoid the same name landing back-to-back at the seam between laps
+      if(decoys.length && lap.length > 1 && lap[0] === decoys[decoys.length-1]){
+        var tmp = lap[0]; lap[0] = lap[1]; lap[1] = tmp;
+      }
+      decoys = decoys.concat(lap);
     }
     decoys.length = need;
   }
