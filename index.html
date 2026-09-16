@@ -194,10 +194,6 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
   0%{inset:38%;opacity:1;border-width:2px}
   100%{inset:-8%;opacity:0;border-width:1px}
 }
-.reelFlank{flex:none;opacity:.75;position:relative;z-index:1;display:none;
-  filter:drop-shadow(0 3px 6px rgba(169,134,63,.35));}
-@media(min-width:640px){.reelFlank{display:block;width:64px;height:74px}}
-@media(min-width:900px){.reelFlank{width:78px;height:90px}}
 .reelViewport{
   position:relative;flex:1 1 auto;min-width:0;max-width:900px;height:min(64vh,640px);
   overflow:hidden;border-radius:var(--radius);border:2px solid var(--brass);z-index:1;
@@ -386,14 +382,12 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 
     <div class="reelStage">
       <div class="reelGlow" aria-hidden="true"></div>
-      <svg class="reelFlank left" width="54" height="62" viewBox="0 0 40 46" aria-hidden="true"><use href="#archIcon"/></svg>
       <div class="reelViewport" id="reelViewport">
         <div class="reelFade top" aria-hidden="true"></div>
         <div class="reelHighlight" aria-hidden="true"></div>
         <div class="reelStrip" id="reelStrip"></div>
         <div class="reelFade bottom" aria-hidden="true"></div>
       </div>
-      <svg class="reelFlank right" width="54" height="62" viewBox="0 0 40 46" aria-hidden="true"><use href="#archIcon"/></svg>
     </div>
 
     <div class="results" id="results"></div>
