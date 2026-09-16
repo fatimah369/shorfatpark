@@ -231,15 +231,6 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
   transform:scale(1.1);
   color:var(--on-gold);
 }
-.reelRow.winnerRow.settled::before,.reelRow.winnerRow.settled::after{
-  content:"";position:absolute;top:50%;width:7px;height:7px;
-  background:linear-gradient(135deg,var(--brass-bright),var(--brass-dim));
-  transform:translateY(-50%) rotate(45deg);
-  animation:flourishIn .5s ease-out .15s both;
-}
-.reelRow.winnerRow.settled::before{left:8%}
-.reelRow.winnerRow.settled::after{right:8%}
-@keyframes flourishIn{from{opacity:0;transform:translateY(-50%) rotate(45deg) scale(.2)}to{opacity:1;transform:translateY(-50%) rotate(45deg) scale(1)}}
 .reelHighlight{
   position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
   height:var(--reelRowH);
