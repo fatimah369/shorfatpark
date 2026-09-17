@@ -25,39 +25,55 @@ One page, two modes:
 
 **Google Sheet (default, live)**: the site is pre-connected to a specific
 published CSV link (see below), refreshing every 10 seconds. A dot next
-to the status line shows green when live. This is a **display-only**
-sheet tab — it contains names only, never phone numbers or emails — see
-"About the connected sheet" below for why that separation matters.
+to the status line shows green when live. This tab holds **two columns —
+name, then phone** — see "About the connected sheet" below for the
+privacy tradeoff that comes with publishing the phone column, and why it
+needs to be a deliberate choice.
 
 **Paste** (fallback): click the "لصق يدوي" / "Paste" tab to switch off the
 live sheet and type or paste names directly, one per line.
 
 **CSV file** (fallback, under the Paste tab): drag a `.csv` file onto the
 dropzone, or click it to choose a file. It reads the file in your browser
-(nothing is uploaded anywhere), takes the **first column** of each row,
-and automatically skips the first row if it looks like a header (e.g.
-"Name", "الاسم"). Useful if the wifi drops — download the sheet as CSV
-and drop it in instead.
+(nothing is uploaded anywhere), takes the **first column** as the name
+and, if present, the **second column** as that person's phone number, and
+automatically skips the first row if it looks like a header (e.g. "Name",
+"الاسم"). Useful if the wifi drops — download the sheet as CSV and drop
+it in instead.
 
-If your source data has other columns (phone numbers, emails, timestamps,
-etc.), that's fine in the CSV file case — only the first column is used.
+## Winner phone numbers
+
+Once a winner is revealed, if a phone number was found for their name (in
+the live sheet's second column, or a dropped CSV's second column), it
+appears automatically under their name on the results card and on the
+printed copy — matched by exact name text, so a name spelled differently
+between the entry and the phone source won't match.
 
 ## About the connected sheet
 
-The site is pointed at a tab in the Google Sheet that was created
-specifically to be safe to publish: it contains **only the name column**,
-built from the real form-responses sheet with a formula like:
+The site is pointed at a tab in the Google Sheet built specifically for
+this: name and phone only, via formulas like:
 
 ```
 =QUERY('Form Responses 1'!J:J, "select J where J is not null", 1)
+=QUERY('Form Responses 1'!K:K, "select K where K is not null", 1)
 ```
+(column A = name, column B = phone — adjust the source columns/letters to
+wherever the real form response sheet keeps them)
 
 That tab, and *only* that tab, is published to the web as CSV (File →
-Share → Publish to web → pick that tab → Comma-separated values). The raw
-"Form Responses" sheet — which has phone numbers and emails — is never
-published. If you ever need to point this at a different sheet, always
-publish a display-only tab, never the raw responses sheet, and never
-"Entire document".
+Share → Publish to web → pick that tab → Comma-separated values). Never
+publish the raw "Form Responses" sheet itself, and never "Entire
+document".
+
+**Tradeoff to know:** the published CSV link is embedded in this page's
+own source code, so anyone who views the page source (or finds the link
+another way) can open that link directly and see every entrant's name
+*and phone number* — not just the winners'. That's the cost of the phone
+number appearing automatically without any extra step at event time. If
+that's ever a concern for a future event, drop the phone column from the
+published tab (keep it name-only, like the original setup) and instead
+look winners' numbers up manually from your own private list.
 
 To change which sheet it connects to: open `index.html`, find the
 `sheetUrl` input's `value` attribute in the setup section, and replace it
