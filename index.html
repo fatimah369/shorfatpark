@@ -269,6 +269,12 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 .res-prize{font-size:13px;color:var(--brass-dim);flex:none;min-width:120px}
 .res-name{font-family:var(--formal);font-size:19px;color:var(--text)}
 .res-meta{font-size:12px;color:var(--muted);margin-top:14px;font-variant-numeric:tabular-nums;text-align:center}
+.print-btn{
+  display:block;margin:16px auto 0;background:none;border:1px solid var(--line);color:var(--muted);
+  font-family:var(--ui);font-size:11px;padding:5px 14px;border-radius:var(--pill);cursor:pointer;
+  transition:border-color .15s ease,color .15s ease;
+}
+.print-btn:hover{border-color:var(--brass-dim);color:var(--text)}
 
 @media(max-width:560px){
   .setup{padding:32px 20px 72px}
@@ -279,6 +285,14 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;transition-duration:.15s !important}
   .reelStrip{transition:none !important}
+}
+
+@media print{
+  body{background:#fff}
+  .topBrandBar,.stage-head,.reelStage,.prize-label,.stage-foot,.print-btn{display:none !important}
+  .stage{position:static;padding:40px 0;background:#fff}
+  .results{box-shadow:none;border:1px solid #999;max-width:100%}
+  .res-name,.res-prize{color:#000}
 }
 
 </style>
@@ -416,7 +430,7 @@ var drawnAt = null;
 
 var T = {
   ar:{ startDraw:"ابدأ السحب", drawing:"جارٍ السحب…", next:"السحب التالي", done:"اكتمل السحب",
-       entries:"مشارك", dupWarn:"مكرر", ordinal:"الجائزة",
+       entries:"مشارك", dupWarn:"مكرر", ordinal:"الجائزة", print:"طباعة النتائج",
        syncIdle:"غير متصل", syncing:"جارٍ الاتصال…",
        syncLive:"متصل — يتحدّث تلقائياً كل ١٠ ثوانٍ · آخر تحديث ",
        syncNames:" اسم",
@@ -425,7 +439,7 @@ var T = {
        errHtml:"هذا رابط صفحة الشيت العادية، وليس رابط النشر بصيغة CSV. اذهب إلى ملف ← مشاركة ← نشر على الويب واستخدم الرابط الذي ينتهي بـ output=csv.",
        errHttp:"الرابط أعاد خطأ (قد يكون محذوفاً أو غير مكتمل). انسخه مجدداً من نافذة النشر." },
   en:{ startDraw:"Start draw", drawing:"Drawing…", next:"Next draw", done:"Draw complete",
-       entries:"entries", dupWarn:"duplicates", ordinal:"Prize",
+       entries:"entries", dupWarn:"duplicates", ordinal:"Prize", print:"Print results",
        syncIdle:"Not connected", syncing:"Connecting…",
        syncLive:"Live — refreshing every 10s · last update ",
        syncNames:" names",
@@ -695,8 +709,10 @@ function renderResults(){
       return '<div class="res-row"><span class="res-prize">' + esc(w.prize) +
              '</span><span class="res-name">' + esc(w.name) + '</span></div>';
     }).join("") + '</div>' +
-    '<div class="res-meta">' + allEntries.length + " " + T[lang].entries + " · " + t + '</div>';
+    '<div class="res-meta">' + allEntries.length + " " + T[lang].entries + " · " + t + '</div>' +
+    '<button class="print-btn" id="printResultsBtn">' + T[lang].print + '</button>';
   box.classList.add("on");
+  $("printResultsBtn").onclick = function(){ window.print(); };
 }
 function esc(s){
   return String(s).replace(/[&<>"]/g, function(c){
