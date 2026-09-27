@@ -453,7 +453,8 @@ var T = {
 };
 
 var $ = function(id){ return document.getElementById(id); };
-var REEL_ROWS = 40;
+var MIN_REEL_ROWS = 24; // keep even a tiny pool feeling like a short spin, not an instant snap
+var MAX_REEL_ROWS = 500; // sanity cap so a huge list can't produce tens of thousands of DOM rows
 var PRIZE_COUNT = 10;
 var ORDINAL_WORDS = {
   ar: ["الأولى","الثانية","الثالثة","الرابعة","الخامسة","السادسة","السابعة","الثامنة","التاسعة","العاشرة"],
@@ -783,34 +784,26 @@ function closeStage(){
    animation runs. The reel is a presentation device: it never decides the
    winner, it only displays one — the last row in the strip is always the
    real winner, everything scrolling past it is decoration. */
-function buildReelRows(poolArr, winnerIdx, totalRows){
+function buildReelRows(poolArr, winnerIdx){
   var winnerName = poolArr[winnerIdx];
-  var need = totalRows - 1;
-  // Excluding the winner from the fill source is fine with a real crowd,
-  // but with only 2-3 entrants it leaves just one other name — cycling
-  // that alone produces the same name dozens of times in a row, which
-  // reads as broken/duplicated rather than as a reel. Below that size,
-  // fill from the whole pool (winner included) instead: it's still
-  // decoration, the winner was already chosen before this ever renders.
-  var fillSource = poolArr.length > 3
-    ? poolArr.filter(function(_, i){ return i !== winnerIdx; })
-    : poolArr.slice();
-  var decoys = [];
-  if(fillSource.length >= need){
-    decoys = sampleK(fillSource, need);
-  } else {
-    while(decoys.length < need){
-      var lap = shuffle(fillSource.slice());
-      // avoid the same name landing back-to-back at the seam between laps
-      if(decoys.length && lap.length > 1 && lap[0] === decoys[decoys.length-1]){
-        var tmp = lap[0]; lap[0] = lap[1]; lap[1] = tmp;
-      }
-      decoys = decoys.concat(lap);
+  // Every entrant should visibly pass by during the spin, not just a
+  // random sample of them — one full shuffled lap of the whole pool.
+  // Below MAX_REEL_ROWS that means literally everyone; past it (an
+  // unusually huge list) fall back to a big random sample so the strip
+  // doesn't balloon into tens of thousands of DOM rows.
+  var lapSource = poolArr.length <= MAX_REEL_ROWS ? poolArr : sampleK(poolArr, MAX_REEL_ROWS);
+  var rows = shuffle(lapSource.slice());
+  // Repeat laps only if the pool is too small to feel like a real spin.
+  while(rows.length < MIN_REEL_ROWS){
+    var lap = shuffle(lapSource.slice());
+    // avoid the same name landing back-to-back at the seam between laps
+    if(rows.length && lap.length > 1 && lap[0] === rows[rows.length-1]){
+      var tmp = lap[0]; lap[0] = lap[1]; lap[1] = tmp;
     }
-    decoys.length = need;
+    rows = rows.concat(lap);
   }
-  decoys.push(winnerName); // last row is always the real winner
-  return decoys;
+  rows.push(winnerName); // final settled row is always the real winner
+  return rows;
 }
 
 function renderReelRows(names){
@@ -866,7 +859,7 @@ function runDraw(){
   var winnerName = pool[pick];
   var prizeName = prizes[drawIndex] || (T[lang].ordinal + " " + (drawIndex+1));
 
-  var rowNames = buildReelRows(pool, pick, REEL_ROWS);
+  var rowNames = buildReelRows(pool, pick);
   renderReelRows(rowNames);
 
   var pl = $("prizeLabel");
