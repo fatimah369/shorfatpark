@@ -609,8 +609,15 @@ function pullSheet(silent){
       if(/^\s*</.test(txt)){ var e = new Error("html"); e.kind = "html"; throw e; }
       var rows = parseSheetCSV(txt);
       if($("hasHeader").checked && rows.length) rows = rows.slice(1);
-      $("entrants").value = rows.map(function(r){ return (r[0]||"").trim(); }).filter(Boolean).join("\n");
+      var names = rows.map(function(r){ return (r[0]||"").trim(); }).filter(Boolean);
       phoneMap = extractPhoneMap(rows, 0); // column B, same tab — kept live like the name column
+      // Shown with each name's phone (tab-separated) so the operator can see
+      // it as entrants arrive; parseEntries only ever reads column 1, so the
+      // draw pool itself is unaffected by this second column.
+      $("entrants").value = names.map(function(n){
+        var p = phoneMap[normName(n)];
+        return p ? n + "\t" + p : n;
+      }).join("\n");
       refresh();
       setSync("live", T[lang].syncLive + timeStr(new Date()) + " · " + parseEntries().list.length + T[lang].syncNames);
       setErr(null);
@@ -686,9 +693,13 @@ function ingestFile(file){
   reader.onload = function(){
     var r = parseCsvFile(String(reader.result || ""));
     if(!r.names.length) return;
-    var existing = $("entrants").value.trim();
-    $("entrants").value = existing ? existing + "\n" + r.names.join("\n") : r.names.join("\n");
     for(var k in r.phoneMap) phoneMap[k] = r.phoneMap[k];
+    var lines = r.names.map(function(n){
+      var p = phoneMap[normName(n)];
+      return p ? n + "\t" + p : n;
+    });
+    var existing = $("entrants").value.trim();
+    $("entrants").value = existing ? existing + "\n" + lines.join("\n") : lines.join("\n");
     refresh();
   };
   reader.readAsText(file);
