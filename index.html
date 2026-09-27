@@ -254,6 +254,16 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 .ctl.primary:active:not(:disabled){transform:translateY(0);box-shadow:none}
 .ctl:disabled{opacity:.35;cursor:not-allowed}
 
+.winnerChip{
+  display:inline-flex;align-items:baseline;gap:10px;margin:6px auto 0;flex:none;
+  background:var(--surface);border:1px solid var(--brass);border-radius:var(--pill);
+  padding:9px 22px;opacity:0;transform:translateY(6px);
+  transition:opacity .4s ease, transform .4s ease;
+}
+.winnerChip.show{opacity:1;transform:translateY(0)}
+.winnerChip .wc-name{font-family:var(--formal);font-size:16px;color:var(--text)}
+.winnerChip .wc-phone{font-size:13px;color:var(--brass-dim);font-variant-numeric:tabular-nums;direction:ltr}
+
 /* ============ RESULTS ============ */
 .results{
   display:none;width:100%;max-width:560px;margin:0 auto;text-align:center;
@@ -405,6 +415,8 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
         <div class="reelFade bottom" aria-hidden="true"></div>
       </div>
     </div>
+
+    <div class="winnerChip" id="winnerChip"></div>
 
     <div class="results" id="results"></div>
   </div>
@@ -774,6 +786,8 @@ function openStage(){
     (lang==="ar" ? "السحب الرسمي" : "Official Draw");
   $("prizeLabel").classList.remove("show");
   $("results").classList.remove("on");
+  $("winnerChip").classList.remove("show");
+  $("winnerChip").innerHTML = "";
   $("reelStrip").innerHTML = "";
   $("reelStrip").style.transition = "none";
   $("reelStrip").style.transform = "translateY(0px)";
@@ -877,6 +891,7 @@ function runDraw(){
   pl.textContent = prizeName;
   pl.classList.add("show");
   $("results").classList.remove("on");
+  $("winnerChip").classList.remove("show");
 
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var DUR = reduce ? 1 : 5000;
@@ -885,10 +900,20 @@ function runDraw(){
     var winnerRow = $("reelStrip").querySelector(".winnerRow");
     if(winnerRow) winnerRow.classList.add("settled");
 
+    var winnerPhone = phoneMap[normName(winnerName)] || "";
     pool.splice(pick,1);
-    winners.push({prize:prizeName, name:winnerName, phone: phoneMap[normName(winnerName)] || ""});
+    winners.push({prize:prizeName, name:winnerName, phone: winnerPhone});
     drawIndex++;
     if(!drawnAt) drawnAt = new Date();
+
+    var chip = $("winnerChip");
+    if(winnerPhone){
+      chip.innerHTML = '<span class="wc-name">' + esc(winnerName) + '</span><span class="wc-phone">' + esc(winnerPhone) + '</span>';
+      chip.classList.add("show");
+    } else {
+      chip.classList.remove("show");
+      chip.innerHTML = "";
+    }
 
     busy = false;
     updateDrawBtn();
